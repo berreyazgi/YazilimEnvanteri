@@ -22,8 +22,8 @@ namespace YazilimEnvanteri.Models.Entities
         public Boolean ProjeAktifMi { get; set; }
         public string Sunucu { get; set; }
         public string websiteUrl { get; set; }
-        public enum ProjeDurum { get; set; }
-        public enum ProjeKritiklik { get; set; }
+        public Enums.ProjeDurum ProjeDurum { get; set; }
+        public Enums.ProjeKritiklik ProjeKritiklik { get; set; }
 
         public ProjeEntity() { }
 
