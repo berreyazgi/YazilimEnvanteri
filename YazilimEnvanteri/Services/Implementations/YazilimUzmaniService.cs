@@ -34,8 +34,8 @@ namespace YazilimEnvanteri.Services.Implementations
         public async Task<int> CreateAsync(YazilimUzmaniEntity entity)
         {
             const string sql = """
-                INSERT INTO "YazilimUzmanlari" ("ProjeId", "Birim", "KullanıcıAdi", "Ad", "Soyad", "Gorev", "Eposta", "Telefon", "SorumluFirma", "OlusturmaTarihi")
-                VALUES (@ProjeId, @Birim, @KullanıcıAdi, @Ad, @Soyad, @Gorev, @Eposta, @Telefon, @SorumluFirma, @OlusturmaTarihi)
+                INSERT INTO "YazilimUzmanlari" ("ProjeId", "Birim", "KullanıcıAdi", "Ad", "Soyad", "Gorev", "Email", "Telefon", "SorumluFirma", "OlusturmaTarihi")
+                VALUES (@ProjeId, @Birim, @KullanıcıAdi, @Ad, @Soyad, @Gorev, @Email, @Telefon, @SorumluFirma, @OlusturmaTarihi)
                 RETURNING "Id";
                 """;
 
@@ -55,7 +55,7 @@ namespace YazilimEnvanteri.Services.Implementations
                     "Ad" = @Ad,
                     "Soyad" = @Soyad,
                     "Gorev" = @Gorev,
-                    "Eposta" = @Eposta,
+                    "Email" = @Email,
                     "Telefon" = @Telefon,
                     "SorumluFirma" = @SorumluFirma,
                     "GuncellemeTarihi" = @GuncellemeTarihi

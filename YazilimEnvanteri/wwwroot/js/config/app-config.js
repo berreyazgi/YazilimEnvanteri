@@ -15,7 +15,7 @@
 
     navigation: [
       { key: "home", label: "Ana Sayfa", icon: "home", href: "/", enabled: true },
-      { key: "projects", label: "Projeler", icon: "projects", href: "/#projeler-bolumu", enabled: true },
+      { key: "projects", label: "Projelerim", icon: "projects", href: "/Proje", enabled: true },
       { key: "infrastructure", label: "Altyapı", icon: "server", href: "#", enabled: false },
       { key: "reports", label: "Raporlar", icon: "chart", href: "#", enabled: false },
       { key: "personnel", label: "Personel", icon: "users", href: "#", enabled: false },

@@ -13,7 +13,7 @@ namespace YazilimEnvanteri.Models.Entities
         public string Ad { get; set; } = string.Empty;
         public string Soyad { get; set; } = string.Empty;
         public string Gorev { get; set; } = string.Empty;
-        public string Eposta { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public int Telefon { get; set; } 
         public string SorumluFirma { get; set; } = string.Empty;
 

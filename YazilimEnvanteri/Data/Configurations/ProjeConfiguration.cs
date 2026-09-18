@@ -8,13 +8,13 @@ namespace YazilimEnvanteri.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<ProjeEntity> builder)
         {
-            builder.ToTable("Proje");
+            builder.ToTable("Proje", "Proje");
 
             builder.ConfigureBaseEntity();
 
             builder.Property(p => p.ProjeKodu)
                 .IsRequired();
-
+            
             builder.HasIndex(p => p.ProjeKodu)
                 .IsUnique();
 

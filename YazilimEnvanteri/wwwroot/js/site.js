@@ -75,7 +75,7 @@
 
     var page = document.body.getAttribute("data-page");
 
-    if (page === "dashboard") {
+    if (page === "projects") {
       window.ProjectsApp.init(window.__INITIAL_PROJECTS__ || [], window.__DATA_ERROR__ === true);
     }
 

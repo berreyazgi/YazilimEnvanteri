@@ -91,29 +91,6 @@
     });
   }
 
-  function metrics() {
-    var list = state.projects;
-    return {
-      toplam: list.length,
-      yayinda: list.filter(function (p) { return p.projeDurum === "Yayında"; }).length,
-      gelistirmede: list.filter(function (p) { return p.projeDurum === "Geliştirme"; }).length,
-      testInceleme: list.filter(function (p) { return p.projeDurum === "Test" || p.projeDurum === "İnceleme"; }).length
-    };
-  }
-
-  function renderMetrics() {
-    var m = metrics();
-    setText("[data-metric='toplam']", m.toplam);
-    setText("[data-metric='yayinda']", m.yayinda);
-    setText("[data-metric='gelistirmede']", m.gelistirmede);
-    setText("[data-metric='testInceleme']", m.testInceleme);
-  }
-
-  function setText(selector, value) {
-    var el = document.querySelector(selector);
-    if (el) el.textContent = value;
-  }
-
   function escapeHtml(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
@@ -226,10 +203,10 @@
       return (
         "<tr>" + cells +
         '<td><div class="row-actions">' +
-        '<a class="app-button app-button--outline app-button--sm" href="/Home/ProjeDetay/' + project.id + '">Detaylar</a>' +
+        '<a class="app-button app-button--outline app-button--sm" href="/Proje/Details/' + project.id + '">Detaylar</a>' +
         '<button type="button" class="row-menu-trigger" data-row-menu-trigger="' + project.id + '" aria-haspopup="true" aria-expanded="false" aria-label="Diğer işlemler">' + cfg.icon("moreHorizontal", 16) + "</button>" +
         '<div class="row-menu-panel" id="row-menu-' + project.id + '">' +
-        '<a href="/Home/ProjeDetay/' + project.id + '">' + cfg.icon("externalLink", 15) + " Detayı Görüntüle</a>" +
+        '<a href="/Proje/Details/' + project.id + '">' + cfg.icon("externalLink", 15) + " Detayı Görüntüle</a>" +
         websiteAction +
         '<button type="button" data-copy-info="' + project.id + '">' + cfg.icon("copy", 15) + " Bilgileri Kopyala</button>" +
         "</div></div></td></tr>"
@@ -254,7 +231,6 @@
   }
 
   function renderAll() {
-    renderMetrics();
     updateSortIndicators();
     window.Filters.renderChips(state, cfg);
 

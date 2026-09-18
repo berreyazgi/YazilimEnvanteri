@@ -15,5 +15,9 @@ namespace YazilimEnvanteri.Services.Interfaces
         // separate per-table lookups the old EF-based generic repository used to do.
         Task<IReadOnlyList<ProjeListItemViewModel>> GetProjeListAsync();
         Task<ProjeListItemViewModel?> GetProjeDetailAsync(int id);
+
+        // Home dashboard summary counts, grouped by ProjeDurum in SQL rather than fetching every
+        // project's full joined row just to count statuses.
+        Task<DashboardViewModel> GetDashboardSummaryAsync();
     }
 }

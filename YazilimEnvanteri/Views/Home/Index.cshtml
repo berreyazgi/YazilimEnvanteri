@@ -1,10 +1,11 @@
-@using System.Text.Json
-@model List<YazilimEnvanteri.Models.ViewModels.ProjeListItemViewModel>
+@model YazilimEnvanteri.Models.ViewModels.DashboardViewModel
 @{
     ViewData["Title"] = "Ana Sayfa";
-    ViewData["Page"] = "dashboard";
+    ViewData["Page"] = "home";
     ViewData["NavKey"] = "home";
-    ViewData["ShowSearch"] = true;
+    ViewData["ShowSearch"] = false;
+
+    bool dataError = (bool?)ViewBag.DataError ?? false;
 }
 
 <partial name="_Topbar" />
@@ -24,132 +25,80 @@
     </div>
 </section>
 
-<div class="metric-grid">
-    <div class="app-card metric-card">
-        <div>
-            <p class="metric-card-label">Toplam Proje</p>
-            <p class="metric-card-value" data-metric="toplam">0</p>
-        </div>
-        <span class="metric-card-icon metric-card-icon--info" data-icon="projects" data-icon-size="20"></span>
+@if (dataError)
+{
+    <div class="app-card empty-state" style="padding: 56px 24px;">
+        <span data-icon="alertTriangle" data-icon-size="40"></span>
+        <p class="empty-state-title">Veriler alınamadı.</p>
+        <p class="empty-state-text">Gösterge paneli bilgilerine şu anda erişilemiyor. Lütfen daha sonra tekrar deneyin.</p>
+        <a class="app-button" href="/">Tekrar Dene</a>
     </div>
-    <div class="app-card metric-card">
-        <div>
-            <p class="metric-card-label">Yayındaki Projeler</p>
-            <p class="metric-card-value" data-metric="yayinda">0</p>
-        </div>
-        <span class="metric-card-icon metric-card-icon--success" data-icon="chart" data-icon-size="20"></span>
-    </div>
-    <div class="app-card metric-card">
-        <div>
-            <p class="metric-card-label">Geliştirme Aşamasında</p>
-            <p class="metric-card-value" data-metric="gelistirmede">0</p>
-        </div>
-        <span class="metric-card-icon metric-card-icon--purple" data-icon="layers" data-icon-size="20"></span>
-    </div>
-    <div class="app-card metric-card">
-        <div>
-            <p class="metric-card-label">Test / İnceleme</p>
-            <p class="metric-card-value" data-metric="testInceleme">0</p>
-        </div>
-        <span class="metric-card-icon metric-card-icon--warning" data-icon="alertTriangle" data-icon-size="20"></span>
-    </div>
-</div>
-
-<section id="projeler-bolumu">
-    <div class="section-header">
-        <div>
-            <h2 class="section-header-title">Projeler</h2>
-            <p class="section-header-subtitle">Tüm yazılım projeleri, sorumlu birimler, teknolojiler ve altyapı bilgilerine merkezi erişim.</p>
-        </div>
-        <div class="section-header-actions">
-            <button type="button" class="app-button app-button--outline" title="Excel olarak dışa aktar (bu sürümde yalnızca arayüz)">
-                <span data-icon="externalLink" data-icon-size="16"></span> Excel
-            </button>
-            <button type="button" class="app-button app-button--outline" title="PDF olarak dışa aktar (bu sürümde yalnızca arayüz)">
-                <span data-icon="externalLink" data-icon-size="16"></span> PDF
-            </button>
-        </div>
-    </div>
-
-    <div class="app-card filter-toolbar">
-        <div class="filter-field">
-            <label class="field-label" for="filter-search">Proje Ara</label>
-            <input id="filter-search" type="search" class="field-input" data-project-search placeholder="Proje ara..." />
-        </div>
-        <div class="filter-field">
-            <label class="field-label" for="filter-hizmet">Hizmet Alanı</label>
-            <select id="filter-hizmet" class="field-select" data-project-filter="hizmetAlani"></select>
-        </div>
-        <div class="filter-field">
-            <label class="field-label" for="filter-birim">Birim</label>
-            <select id="filter-birim" class="field-select" data-project-filter="birim"></select>
-        </div>
-        <div class="filter-field">
-            <label class="field-label" for="filter-durum">Durum</label>
-            <select id="filter-durum" class="field-select" data-project-filter="durum"></select>
-        </div>
-        <div class="filter-field">
-            <label class="field-label" for="filter-kritiklik">Kritiklik</label>
-            <select id="filter-kritiklik" class="field-select" data-project-filter="kritiklik"></select>
-        </div>
-        <div class="filter-field">
-            <button type="button" class="app-button app-button--outline" data-advanced-filter-toggle aria-expanded="false" aria-controls="advanced-filter-panel">
-                <span data-icon="settings" data-icon-size="16"></span> Daha Fazla Filtre
-            </button>
-        </div>
-
-        <div id="advanced-filter-panel" class="filter-field" data-advanced-filter-panel style="display:none; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px;">
-            <label class="field-label" style="display:flex; align-items:center; gap:8px; font-weight:500;">
-                <input type="checkbox" data-project-filter="sadeceAktif" /> Sadece Aktif Projeler
-            </label>
-            <label class="field-label" style="display:flex; align-items:center; gap:8px; font-weight:500;">
-                <input type="checkbox" data-project-filter="sadeceWebAdresiOlan" /> Web Adresi Olanlar
-            </label>
-        </div>
-    </div>
-
-    <div class="filter-chips" data-filter-chips style="display:none;"></div>
-    <button type="button" class="filter-chips-clear" data-clear-all-filters style="display:none; margin: -14px 0 18px;">Tümünü Temizle</button>
-
-    <div class="app-card">
-        <div class="table-scroll" data-project-table-wrap>
-            <table class="project-table">
-                <thead data-project-table-head></thead>
-                <tbody data-project-table-body></tbody>
-            </table>
-        </div>
-
-        <div class="empty-state" data-project-empty-state style="display:none;">
-            <span data-icon="inbox" data-icon-size="40"></span>
-            <p class="empty-state-title">Henüz proje bulunmuyor.</p>
-            <p class="empty-state-text">Filtrelerinizi değiştirebilir veya yeni proje verilerinin eklenmesini bekleyebilirsiniz.</p>
-        </div>
-
-        <div class="empty-state" data-project-error-state style="display:none;">
-            <span data-icon="alertTriangle" data-icon-size="40"></span>
-            <p class="empty-state-title">Veriler alınamadı.</p>
-            <p class="empty-state-text">Proje verilerine şu anda erişilemiyor.</p>
-            <button type="button" class="app-button" data-retry-load>Tekrar Dene</button>
-        </div>
-
-        <div class="pagination-bar" data-pagination-bar>
-            <span class="pagination-summary" data-pagination-summary></span>
-            <div class="pagination-size">
-                <label for="page-size-select">Sayfa başına</label>
-                <select id="page-size-select" data-page-size></select>
+}
+else
+{
+    <div class="metric-grid">
+        <div class="app-card metric-card">
+            <div>
+                <p class="metric-card-label">Toplam Proje</p>
+                <p class="metric-card-value">@Model.ToplamProje</p>
             </div>
-            <div class="pagination-controls" data-pagination-controls></div>
+            <span class="metric-card-icon metric-card-icon--info" data-icon="projects" data-icon-size="20"></span>
+        </div>
+        <div class="app-card metric-card">
+            <div>
+                <p class="metric-card-label">Yayındaki Projeler</p>
+                <p class="metric-card-value">@Model.YayindakiProje</p>
+            </div>
+            <span class="metric-card-icon metric-card-icon--success" data-icon="chart" data-icon-size="20"></span>
+        </div>
+        <div class="app-card metric-card">
+            <div>
+                <p class="metric-card-label">Geliştirme Aşamasında</p>
+                <p class="metric-card-value">@Model.GelistirmedekiProje</p>
+            </div>
+            <span class="metric-card-icon metric-card-icon--purple" data-icon="layers" data-icon-size="20"></span>
+        </div>
+        <div class="app-card metric-card">
+            <div>
+                <p class="metric-card-label">Test / İnceleme</p>
+                <p class="metric-card-value">@Model.TestIncelemeProje</p>
+            </div>
+            <span class="metric-card-icon metric-card-icon--warning" data-icon="alertTriangle" data-icon-size="20"></span>
         </div>
     </div>
-</section>
+
+    <section class="analytics-placeholder">
+        <div class="section-header">
+            <div>
+                <h2 class="section-header-title">Detaylı Analizler</h2>
+                <p class="section-header-subtitle">Bu bölümdeki grafikler yakında eklenecek.</p>
+            </div>
+        </div>
+        <div class="analytics-placeholder-grid">
+            <div class="app-card analytics-placeholder-card">
+                <span class="analytics-placeholder-icon" data-icon="chart" data-icon-size="20"></span>
+                <h3>Proje Durum Dağılımı</h3>
+                <p>Grafik yakında eklenecek.</p>
+            </div>
+            <div class="app-card analytics-placeholder-card">
+                <span class="analytics-placeholder-icon" data-icon="alertTriangle" data-icon-size="20"></span>
+                <h3>Kritiklik Dağılımı</h3>
+                <p>Grafik yakında eklenecek.</p>
+            </div>
+            <div class="app-card analytics-placeholder-card">
+                <span class="analytics-placeholder-icon" data-icon="server" data-icon-size="20"></span>
+                <h3>Birimlere Göre Projeler</h3>
+                <p>Grafik yakında eklenecek.</p>
+            </div>
+            <div class="app-card analytics-placeholder-card">
+                <span class="analytics-placeholder-icon" data-icon="layers" data-icon-size="20"></span>
+                <h3>Teknoloji Dağılımı</h3>
+                <p>Grafik yakında eklenecek.</p>
+            </div>
+        </div>
+    </section>
+}
 
 @section Styles {
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
-}
-
-@section Scripts {
-    <script>
-        window.__INITIAL_PROJECTS__ = @Html.Raw(JsonSerializer.Serialize(Model ?? new List<YazilimEnvanteri.Models.ViewModels.ProjeListItemViewModel>(), new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
-        window.__DATA_ERROR__ = @(((bool?)ViewBag.DataError ?? false) ? "true" : "false");
-    </script>
 }

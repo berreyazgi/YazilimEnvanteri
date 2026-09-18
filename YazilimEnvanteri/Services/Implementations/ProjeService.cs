@@ -91,11 +91,6 @@ namespace YazilimEnvanteri.Services.Implementations
         {
             using var connection = _connectionFactory.CreateConnection();
             var rows = await connection.QueryAsync<ProjeListRow>(ProjeListSql);
-
-            // rows is already fully buffered (Dapper's QueryAsync materializes by default), but
-            // .Select(...) itself is lazy LINQ - force it to a concrete list before the
-            // connection above is disposed, so callers never hold a projection tied to a
-            // (potentially, if that default ever changes) live reader on a disposed connection.
             return rows.Select(MapToViewModel).ToList();
         }
 
@@ -105,6 +100,32 @@ namespace YazilimEnvanteri.Services.Implementations
             var row = await connection.QuerySingleOrDefaultAsync<ProjeListRow>(
                 ProjeListSql + " WHERE p.\"Id\" = @Id;", new { Id = id });
             return row is null ? null : MapToViewModel(row);
+        }
+
+        public async Task<DashboardViewModel> GetDashboardSummaryAsync()
+        {
+            const string sql = "SELECT \"ProjeDurum\", COUNT(*) AS \"Count\" FROM \"Proje\".\"Proje\" GROUP BY \"ProjeDurum\";";
+
+            using var connection = _connectionFactory.CreateConnection();
+            var result = await connection.QueryAsync<DurumCountRow>(sql);
+            var counts = result.AsList();
+
+            int CountFor(params ProjeDurum[] statuses) =>
+                counts.Where(c => statuses.Contains(c.ProjeDurum)).Sum(c => c.Count);
+
+            return new DashboardViewModel
+            {
+                ToplamProje = counts.Sum(c => c.Count),
+                YayindakiProje = CountFor(ProjeDurum.Yayında),
+                GelistirmedekiProje = CountFor(ProjeDurum.Geliştirme),
+                TestIncelemeProje = CountFor(ProjeDurum.Test, ProjeDurum.İnceleme)
+            };
+        }
+
+        private sealed class DurumCountRow
+        {
+            public ProjeDurum ProjeDurum { get; set; }
+            public int Count { get; set; }
         }
 
         // One joined query covering all four related tables, instead of one round trip per
@@ -128,7 +149,7 @@ namespace YazilimEnvanteri.Services.Implementations
                 y."Soyad"               AS "YazilimUzmaniSoyad",
                 y."KullanıcıAdi"        AS "YazilimUzmaniKullaniciAdi",
                 y."Gorev"               AS "YazilimUzmaniGorev",
-                y."Eposta"              AS "YazilimUzmaniEposta",
+                y."Email"               AS "YazilimUzmaniEposta",
                 y."Telefon"             AS "YazilimUzmaniTelefon",
                 y."SorumluFirma"        AS "YazilimUzmaniSorumluFirma",
                 t."BackendTeknoloji"    AS "BackendTeknoloji",

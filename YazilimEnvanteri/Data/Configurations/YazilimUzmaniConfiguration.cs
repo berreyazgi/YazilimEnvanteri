@@ -13,8 +13,8 @@ namespace YazilimEnvanteri.Data.Configurations
             builder.ConfigureBaseEntity();
 
             builder.Property(y => y.KullanıcıAdi)
-                .HasMaxLength(50)
-                .HasComputedColumnSql("SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1)", stored: true);
+                .IsRequired()
+                .HasMaxLength(50);
 
             builder.Property(y => y.Ad)
                 .IsRequired()
@@ -28,7 +28,7 @@ namespace YazilimEnvanteri.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(y => y.Eposta)
+            builder.Property(y => y.Email)
                 .IsRequired()
                 .HasMaxLength(200);
 
@@ -41,7 +41,7 @@ namespace YazilimEnvanteri.Data.Configurations
                 .HasMaxLength(150);
 
             builder.HasIndex(y => y.KullanıcıAdi);
-            builder.HasIndex(y => y.Eposta);
+            builder.HasIndex(y => y.Email);
 
             builder.HasOne<BirimEntity>()
                 .WithMany()

@@ -19,56 +19,24 @@ namespace YazilimEnvanteri.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var (projeler, dataError) = await GetProjeListAsync();
-            ViewBag.DataError = dataError;
-            return View(projeler);
-        }
-
-        public async Task<IActionResult> ProjeDetay(int id)
-        {
-            var (proje, dataError) = await GetProjeDetailAsync(id);
-            ViewBag.DataError = dataError;
-
-            if (proje == null && !dataError)
+            try
             {
-                return NotFound();
+                var dashboard = await _projeService.GetDashboardSummaryAsync();
+                ViewBag.DataError = false;
+                return View(dashboard);
             }
-
-            return View(proje);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Gösterge paneli verileri alınırken hata oluştu.");
+                ViewBag.DataError = true;
+                return View(new DashboardViewModel());
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-
-        private async Task<(List<ProjeListItemViewModel> Projeler, bool DataError)> GetProjeListAsync()
-        {
-            try
-            {
-                var projeler = await _projeService.GetProjeListAsync();
-                return (projeler.ToList(), false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Proje verileri alınırken hata oluştu.");
-                return (new List<ProjeListItemViewModel>(), true);
-            }
-        }
-
-        private async Task<(ProjeListItemViewModel? Proje, bool DataError)> GetProjeDetailAsync(int id)
-        {
-            try
-            {
-                var proje = await _projeService.GetProjeDetailAsync(id);
-                return (proje, false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Proje verileri alınırken hata oluştu.");
-                return (null, true);
-            }
         }
     }
 }

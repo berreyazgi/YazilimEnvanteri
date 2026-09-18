@@ -12,6 +12,9 @@ namespace YazilimEnvanteri.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "Proje");
+
             migrationBuilder.CreateTable(
                 name: "Personeller",
                 columns: table => new
@@ -72,6 +75,7 @@ namespace YazilimEnvanteri.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Proje",
+                schema: "Proje",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -116,11 +120,11 @@ namespace YazilimEnvanteri.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ProjeId = table.Column<int>(type: "integer", nullable: false),
                     Birim = table.Column<int>(type: "integer", nullable: false),
-                    KullanıcıAdi = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false, computedColumnSql: "SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1)", stored: true),
+                    KullanıcıAdi = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Ad = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Soyad = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Gorev = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Eposta = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Email = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Telefon = table.Column<int>(type: "integer", maxLength: 20, nullable: false),
                     SorumluFirma = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     OlusturmaTarihi = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -138,6 +142,7 @@ namespace YazilimEnvanteri.Migrations
                     table.ForeignKey(
                         name: "FK_YazilimUzmanlari_Proje_ProjeId",
                         column: x => x.ProjeId,
+                        principalSchema: "Proje",
                         principalTable: "Proje",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -155,22 +160,26 @@ namespace YazilimEnvanteri.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Proje_BirimId",
+                schema: "Proje",
                 table: "Proje",
                 column: "BirimId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Proje_ProjeKodu",
+                schema: "Proje",
                 table: "Proje",
                 column: "ProjeKodu",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Proje_TeknolojiId",
+                schema: "Proje",
                 table: "Proje",
                 column: "TeknolojiId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Proje_YazilimUzmaniId",
+                schema: "Proje",
                 table: "Proje",
                 column: "YazilimUzmaniId");
 
@@ -180,9 +189,9 @@ namespace YazilimEnvanteri.Migrations
                 column: "Birim");
 
             migrationBuilder.CreateIndex(
-                name: "IX_YazilimUzmanlari_Eposta",
+                name: "IX_YazilimUzmanlari_Email",
                 table: "YazilimUzmanlari",
-                column: "Eposta");
+                column: "Email");
 
             migrationBuilder.CreateIndex(
                 name: "IX_YazilimUzmanlari_KullanıcıAdi",
@@ -204,6 +213,7 @@ namespace YazilimEnvanteri.Migrations
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Proje_YazilimUzmanlari_YazilimUzmaniId",
+                schema: "Proje",
                 table: "Proje",
                 column: "YazilimUzmaniId",
                 principalTable: "YazilimUzmanlari",
@@ -220,6 +230,7 @@ namespace YazilimEnvanteri.Migrations
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Proje_YazilimUzmanlari_YazilimUzmaniId",
+                schema: "Proje",
                 table: "Proje");
 
             migrationBuilder.DropTable(
@@ -229,7 +240,8 @@ namespace YazilimEnvanteri.Migrations
                 name: "YazilimUzmanlari");
 
             migrationBuilder.DropTable(
-                name: "Proje");
+                name: "Proje",
+                schema: "Proje");
 
             migrationBuilder.DropTable(
                 name: "Birimler");

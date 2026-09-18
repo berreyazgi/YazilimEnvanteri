@@ -12,7 +12,7 @@ using YazilimEnvanteri.Data;
 namespace YazilimEnvanteri.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260918110457_InitialCreate")]
+    [Migration("20260918114026_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -189,7 +189,7 @@ namespace YazilimEnvanteri.Migrations
 
                     b.HasIndex("YazilimUzmaniId");
 
-                    b.ToTable("Proje", (string)null);
+                    b.ToTable("Proje", "Proje");
                 });
 
             modelBuilder.Entity("YazilimEnvanteri.Models.Entities.TeknolojiEntity", b =>
@@ -248,7 +248,7 @@ namespace YazilimEnvanteri.Migrations
                     b.Property<int>("Birim")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Eposta")
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -263,10 +263,8 @@ namespace YazilimEnvanteri.Migrations
 
                     b.Property<string>("KullanıcıAdi")
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasComputedColumnSql("SUBSTRING(Email, 1, CHARINDEX('@', Email) - 1)", true);
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("OlusturmaTarihi")
                         .HasColumnType("timestamp with time zone");
@@ -292,7 +290,7 @@ namespace YazilimEnvanteri.Migrations
 
                     b.HasIndex("Birim");
 
-                    b.HasIndex("Eposta");
+                    b.HasIndex("Email");
 
                     b.HasIndex("KullanıcıAdi");
 
