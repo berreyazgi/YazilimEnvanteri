@@ -1,0 +1,44 @@
+@{
+    bool showSearch = ViewData["ShowSearch"] as bool? ?? true;
+    string title = ViewData["TopbarTitle"] as string ?? "Yazılım Envanteri ve Yönetim Portalı";
+}
+<div class="app-topbar">
+    <h1 class="app-topbar-title">@title</h1>
+
+    @if (showSearch)
+    {
+        <div class="search-box">
+            <span data-icon="search" data-icon-size="16"></span>
+            <input type="search" data-project-search placeholder="Projelerde, birimlerde, sunucularda veya teknolojilerde ara..." aria-label="Projelerde ara" />
+        </div>
+    }
+
+    <div class="topbar-right">
+        <div class="bell-wrap">
+            <button type="button" class="bell-btn" data-dropdown-trigger="bellPanel" aria-label="Bildirimler">
+                <span data-icon="bell" data-icon-size="20"></span>
+                <span class="bell-badge">0</span>
+            </button>
+            <div class="dropdown-panel" id="bellPanel">
+                <div class="empty-state" style="padding: 24px 12px;">
+                    <span data-icon="inbox" data-icon-size="28"></span>
+                    <p class="empty-state-text">Yeni bildirim bulunmuyor.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-wrap">
+            <button type="button" class="user-block" data-dropdown-trigger="userMenuPanel">
+                <span class="avatar" data-user-initials></span>
+                <span class="user-meta">
+                    <span class="user-name" data-user-name></span>
+                    <span class="user-role" data-user-role></span>
+                </span>
+                <span class="dropdown-caret" data-icon="chevronDown" data-icon-size="16"></span>
+            </button>
+            <div class="dropdown-panel" id="userMenuPanel">
+                <span class="dropdown-item" style="opacity:.6; cursor:default;">Profil ve ayarlar bu sürümde kullanılamıyor.</span>
+            </div>
+        </div>
+    </div>
+</div>

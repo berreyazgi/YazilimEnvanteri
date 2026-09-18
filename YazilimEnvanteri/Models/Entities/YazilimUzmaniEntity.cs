@@ -9,7 +9,7 @@ namespace YazilimEnvanteri.Models.Entities
         public int ProjeId { get; set; }
         [ForeignKey("BirimEntity")]
         public int Birim { get; set; }
-        public string KullanıcıAdi { get; set; } = string.Empty;
+        public string KullanıcıAdi { get; set; }
         public string Ad { get; set; } = string.Empty;
         public string Soyad { get; set; } = string.Empty;
         public string Gorev { get; set; } = string.Empty;

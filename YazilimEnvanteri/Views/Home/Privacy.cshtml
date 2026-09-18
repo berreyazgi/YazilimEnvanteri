@@ -1,6 +1,13 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+@{
+    ViewData["Title"] = "Gizlilik Politikası";
+    ViewData["Page"] = "privacy";
+    ViewData["NavKey"] = "";
+    ViewData["ShowSearch"] = false;
+    ViewData["TopbarTitle"] = "Gizlilik Politikası";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<partial name="_Topbar" />
+
+<div class="app-card" style="padding: 24px;">
+    <p>Bu sayfa kurumunuzun gizlilik politikasının ayrıntılarını belirtmek için kullanılabilir.</p>
+</div>

@@ -1,0 +1,285 @@
+@model YazilimEnvanteri.Models.ViewModels.ProjeListItemViewModel
+@{
+    ViewData["Title"] = Model?.ProjeAdi ?? "Proje Detayı";
+    ViewData["Page"] = "project-detail";
+    ViewData["NavKey"] = "projects";
+    ViewData["ShowSearch"] = false;
+    ViewData["TopbarTitle"] = "Proje Detayı";
+
+    bool dataError = (bool?)ViewBag.DataError ?? false;
+}
+
+<partial name="_Topbar" />
+
+<a class="detail-back" href="/">
+    <span data-icon="arrowLeft" data-icon-size="16"></span> Projelere Dön
+</a>
+
+@if (dataError || Model == null)
+{
+    <div class="app-card empty-state" style="padding: 64px 24px;">
+        <span data-icon="alertTriangle" data-icon-size="40"></span>
+        <p class="empty-state-title">Veriler alınamadı.</p>
+        <p class="empty-state-text">Proje bilgilerine şu anda erişilemiyor. Lütfen daha sonra tekrar deneyin.</p>
+        <a class="app-button" href="/">Tekrar Dene</a>
+    </div>
+}
+else
+{
+    bool hasInfrastructure = !string.IsNullOrWhiteSpace(Model.Sunucu) || !string.IsNullOrWhiteSpace(Model.WebsiteUrl);
+    bool hasTechnology = !string.IsNullOrWhiteSpace(Model.BackendTeknoloji) || !string.IsNullOrWhiteSpace(Model.FrontendTeknoloji)
+        || !string.IsNullOrWhiteSpace(Model.Veritabani) || Model.EntegrasyonDurum.HasValue || Model.EimzaDurum.HasValue;
+    bool hasDeveloper = !string.IsNullOrWhiteSpace(Model.YazilimUzmaniAdSoyad);
+
+    <div class="detail-header">
+        <div class="detail-header-main">
+            <div class="detail-header-badges">
+                @{
+                    var statusTone = Model.ProjeDurum switch
+                    {
+                        "Analiz" => "purple",
+                        "Geliştirme" => "info",
+                        "İnceleme" => "warning",
+                        "Test" => "orange",
+                        "Tamamlanmış" => "teal",
+                        "Yayında" => "success",
+                        _ => "neutral"
+                    };
+                    var criticalityTone = Model.ProjeKritiklik switch
+                    {
+                        "Düşük" => "success",
+                        "Orta" => "warning",
+                        "Yüksek" => "danger",
+                        _ => "neutral"
+                    };
+                }
+                <span class="status-badge status-badge--@statusTone">@Model.ProjeDurum</span>
+                <span class="status-badge status-badge--@criticalityTone">Kritiklik: @Model.ProjeKritiklik</span>
+                <span class="status-badge status-badge--@(Model.ProjeAktifMi ? "success" : "neutral")">@(Model.ProjeAktifMi ? "Aktif" : "Pasif")</span>
+            </div>
+            <h1 class="detail-title">@Model.ProjeAdi</h1>
+            <span class="detail-code">Proje Kodu: @Model.ProjeKodu</span>
+            @if (!string.IsNullOrWhiteSpace(Model.ProjeAciklamasi))
+            {
+                <p class="detail-description">@Model.ProjeAciklamasi</p>
+            }
+        </div>
+        <div class="detail-header-actions">
+            @if (!string.IsNullOrWhiteSpace(Model.WebsiteUrl))
+            {
+                <a class="app-button" href="@Model.WebsiteUrl" target="_blank" rel="noopener">
+                    <span data-icon="externalLink" data-icon-size="16"></span> Web Sitesini Aç
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="app-tabs" role="tablist">
+        <button type="button" class="app-tab active" data-tab="genel" role="tab" aria-selected="true">Genel Bakış</button>
+        @if (hasInfrastructure)
+        {
+            <button type="button" class="app-tab" data-tab="altyapi" role="tab" aria-selected="false">Altyapı</button>
+        }
+        @if (hasTechnology)
+        {
+            <button type="button" class="app-tab" data-tab="teknoloji" role="tab" aria-selected="false">Teknolojiler</button>
+        }
+        @if (hasDeveloper)
+        {
+            <button type="button" class="app-tab" data-tab="ekip" role="tab" aria-selected="false">Ekip</button>
+        }
+    </div>
+
+    <div class="tab-panel active" data-tab-panel="genel">
+        <div class="app-card info-card info-card--blue">
+            <div class="info-card-header">
+                <span class="info-card-icon" data-icon="project" data-icon-size="18"></span>
+                <h2 class="info-card-title">Genel ve Organizasyon Bilgileri</h2>
+            </div>
+            <div class="info-grid">
+                <div class="info-row">
+                    <span class="info-row-label">Proje Adı</span>
+                    <span class="info-row-value">@Model.ProjeAdi</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">Proje Kodu</span>
+                    <span class="info-row-value">@Model.ProjeKodu</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">Hizmet Alanı</span>
+                    <span class="info-row-value">@Model.ProjeHizmetAlani</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">Aktiflik Durumu</span>
+                    <span class="info-row-value">@(Model.ProjeAktifMi ? "Aktif" : "Pasif")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">Birim</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.Birim))
+                    {
+                        <span class="info-row-value">@Model.Birim</span>
+                    }
+                    else
+                    {
+                        <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                    }
+                </div>
+                <div class="info-row">
+                    <span class="info-row-label">Üst Birim / Alt Birim</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.UstBirim) || !string.IsNullOrWhiteSpace(Model.AltBirim))
+                    {
+                        <span class="info-row-value">@(Model.UstBirim ?? "—") / @(Model.AltBirim ?? "—")</span>
+                    }
+                    else
+                    {
+                        <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                    }
+                </div>
+                <div class="info-row info-row--full">
+                    <span class="info-row-label">Proje Açıklaması</span>
+                    <span class="info-row-value">@(string.IsNullOrWhiteSpace(Model.ProjeAciklamasi) ? "Bilgi bulunmuyor" : Model.ProjeAciklamasi)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (hasInfrastructure)
+    {
+        <div class="tab-panel" data-tab-panel="altyapi">
+            <div class="app-card info-card info-card--teal">
+                <div class="info-card-header">
+                    <span class="info-card-icon" data-icon="server" data-icon-size="18"></span>
+                    <h2 class="info-card-title">Sunucu ve Yayın Bilgileri</h2>
+                </div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span class="info-row-label">Sunucu</span>
+                        @if (!string.IsNullOrWhiteSpace(Model.Sunucu))
+                        {
+                            <span class="info-row-value">@Model.Sunucu</span>
+                        }
+                        else
+                        {
+                            <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                        }
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Web Adresi</span>
+                        @if (!string.IsNullOrWhiteSpace(Model.WebsiteUrl))
+                        {
+                            <span class="info-row-value"><a href="@Model.WebsiteUrl" target="_blank" rel="noopener">@Model.WebsiteUrl</a></span>
+                        }
+                        else
+                        {
+                            <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (hasTechnology)
+    {
+        <div class="tab-panel" data-tab-panel="teknoloji">
+            <div class="app-card info-card info-card--purple">
+                <div class="info-card-header">
+                    <span class="info-card-icon" data-icon="layers" data-icon-size="18"></span>
+                    <h2 class="info-card-title">Teknoloji Yığını ve Entegrasyonlar</h2>
+                </div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span class="info-row-label">Backend Teknolojisi</span>
+                        <span class="info-row-value @(string.IsNullOrWhiteSpace(Model.BackendTeknoloji) ? "info-row-value--muted" : "")">@(string.IsNullOrWhiteSpace(Model.BackendTeknoloji) ? "Bilgi bulunmuyor" : Model.BackendTeknoloji)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Frontend Teknolojisi</span>
+                        <span class="info-row-value @(string.IsNullOrWhiteSpace(Model.FrontendTeknoloji) ? "info-row-value--muted" : "")">@(string.IsNullOrWhiteSpace(Model.FrontendTeknoloji) ? "Bilgi bulunmuyor" : Model.FrontendTeknoloji)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Veritabanı</span>
+                        <span class="info-row-value @(string.IsNullOrWhiteSpace(Model.Veritabani) ? "info-row-value--muted" : "")">@(string.IsNullOrWhiteSpace(Model.Veritabani) ? "Bilgi bulunmuyor" : Model.Veritabani)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Entegrasyon Durumu</span>
+                        @if (Model.EntegrasyonDurum.HasValue)
+                        {
+                            <span class="status-badge status-badge--@(Model.EntegrasyonDurum.Value ? "success" : "neutral")">@(Model.EntegrasyonDurum.Value ? "Evet" : "Hayır")</span>
+                        }
+                        else
+                        {
+                            <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                        }
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">E-İmza Desteği</span>
+                        @if (Model.EimzaDurum.HasValue)
+                        {
+                            <span class="status-badge status-badge--@(Model.EimzaDurum.Value ? "success" : "neutral")">@(Model.EimzaDurum.Value ? "Evet" : "Hayır")</span>
+                        }
+                        else
+                        {
+                            <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (hasDeveloper)
+    {
+        <div class="tab-panel" data-tab-panel="ekip">
+            <div class="app-card info-card info-card--orange">
+                <div class="info-card-header">
+                    <span class="info-card-icon" data-icon="user" data-icon-size="18"></span>
+                    <h2 class="info-card-title">Sorumlu Yazılım Uzmanı</h2>
+                </div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <span class="info-row-label">Ad Soyad</span>
+                        <span class="info-row-value">@Model.YazilimUzmaniAdSoyad</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Kullanıcı Adı</span>
+                        <span class="info-row-value @(string.IsNullOrWhiteSpace(Model.YazilimUzmaniKullaniciAdi) ? "info-row-value--muted" : "")">@(string.IsNullOrWhiteSpace(Model.YazilimUzmaniKullaniciAdi) ? "Bilgi bulunmuyor" : Model.YazilimUzmaniKullaniciAdi)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Görev</span>
+                        <span class="info-row-value @(string.IsNullOrWhiteSpace(Model.YazilimUzmaniGorev) ? "info-row-value--muted" : "")">@(string.IsNullOrWhiteSpace(Model.YazilimUzmaniGorev) ? "Bilgi bulunmuyor" : Model.YazilimUzmaniGorev)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Sorumlu Firma</span>
+                        <span class="info-row-value @(string.IsNullOrWhiteSpace(Model.YazilimUzmaniSorumluFirma) ? "info-row-value--muted" : "")">@(string.IsNullOrWhiteSpace(Model.YazilimUzmaniSorumluFirma) ? "Bilgi bulunmuyor" : Model.YazilimUzmaniSorumluFirma)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">E-posta</span>
+                        @if (!string.IsNullOrWhiteSpace(Model.YazilimUzmaniEposta))
+                        {
+                            <span class="info-row-value"><a href="mailto:@Model.YazilimUzmaniEposta">@Model.YazilimUzmaniEposta</a></span>
+                        }
+                        else
+                        {
+                            <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                        }
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Telefon</span>
+                        @if (!string.IsNullOrWhiteSpace(Model.YazilimUzmaniTelefon))
+                        {
+                            <span class="info-row-value"><a href="tel:@Model.YazilimUzmaniTelefon">@Model.YazilimUzmaniTelefon</a></span>
+                        }
+                        else
+                        {
+                            <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/project-detail.css" asp-append-version="true" />
+}
