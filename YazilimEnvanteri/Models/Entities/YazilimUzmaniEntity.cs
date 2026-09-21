@@ -5,6 +5,7 @@ namespace YazilimEnvanteri.Models.Entities
 {
     public class YazilimUzmaniEntity : BaseEntity
     {
+        //yazılım uzmanını personel tablosuna bağla özelleştirilmesi gerekenleri yazılım uzmanı tablosunda bırak
         [ForeignKey("ProjeEntity")]
         public int ProjeId { get; set; }
         [ForeignKey("BirimEntity")]

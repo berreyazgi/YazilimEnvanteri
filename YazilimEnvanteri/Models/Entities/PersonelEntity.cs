@@ -13,7 +13,7 @@ namespace YazilimEnvanteri.Models.Entities
         public string Email { get; set; } = string.Empty;
         public string Telefon { get; set; } = string.Empty;
         public string Gorev { get; set; } = string.Empty;
-
+        
         //empty olabilir
         public string SorumluPersonel{ get; set; }
 

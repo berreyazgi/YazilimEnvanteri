@@ -62,19 +62,22 @@
       }
     },
 
+    // `value` mirrors the underlying C# enum's numeric value (Enums.ProjeDurum /
+    // Enums.ProjeKritiklik) - the create-project form submits this integer, since the API
+    // model-binds ProjeEntity's enum properties from their numeric representation, not the label.
     statusThemes: {
-      "Analiz": { label: "Analiz", tone: "purple" },
-      "Geliştirme": { label: "Geliştirme", tone: "info" },
-      "İnceleme": { label: "İnceleme", tone: "warning" },
-      "Test": { label: "Test", tone: "orange" },
-      "Tamamlanmış": { label: "Tamamlanmış", tone: "teal" },
-      "Yayında": { label: "Yayında", tone: "success" }
+      "Analiz": { label: "Analiz", tone: "purple", value: 1 },
+      "Geliştirme": { label: "Geliştirme", tone: "info", value: 2 },
+      "İnceleme": { label: "İnceleme", tone: "warning", value: 3 },
+      "Test": { label: "Test", tone: "orange", value: 4 },
+      "Tamamlanmış": { label: "Tamamlanmış", tone: "teal", value: 5 },
+      "Yayında": { label: "Yayında", tone: "success", value: 6 }
     },
 
     criticalityThemes: {
-      "Düşük": { label: "Düşük", tone: "success" },
-      "Orta": { label: "Orta", tone: "warning" },
-      "Yüksek": { label: "Yüksek", tone: "danger" }
+      "Düşük": { label: "Düşük", tone: "success", value: 1 },
+      "Orta": { label: "Orta", tone: "warning", value: 2 },
+      "Yüksek": { label: "Yüksek", tone: "danger", value: 3 }
     },
 
     projectColumns: [

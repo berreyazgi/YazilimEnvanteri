@@ -10,6 +10,7 @@
       if (!sidebar || !overlay) return;
       sidebar.classList.remove("open");
       overlay.classList.remove("open");
+      document.body.classList.remove("sidebar-open");
       if (toggle) toggle.setAttribute("aria-expanded", "false");
     }
 
@@ -17,6 +18,7 @@
       if (!sidebar || !overlay) return;
       sidebar.classList.add("open");
       overlay.classList.add("open");
+      document.body.classList.add("sidebar-open");
       if (toggle) toggle.setAttribute("aria-expanded", "true");
     }
 
@@ -39,6 +41,13 @@
         }
         closeSidebar();
       });
+    });
+
+    // Resizing past the desktop breakpoint while the drawer is open would otherwise leave the
+    // body scroll lock stuck (the drawer itself is harmless there since it's no longer
+    // position:fixed, but the lock isn't tied to any breakpoint on its own).
+    window.addEventListener("resize", function () {
+      if (window.innerWidth >= 1200) closeSidebar();
     });
   }
 

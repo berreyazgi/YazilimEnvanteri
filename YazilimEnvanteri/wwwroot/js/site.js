@@ -77,6 +77,7 @@
 
     if (page === "projects") {
       window.ProjectsApp.init(window.__INITIAL_PROJECTS__ || [], window.__DATA_ERROR__ === true);
+      window.ProjectForm.init();
     }
 
     if (page === "project-detail") {

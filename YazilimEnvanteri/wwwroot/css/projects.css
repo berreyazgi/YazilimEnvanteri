@@ -12,6 +12,34 @@
 
 .filter-field { display: flex; flex-direction: column; }
 
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.advanced-filter-panel {
+  grid-column: 1 / -1;
+  display: none;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.advanced-filter-panel.open { display: grid; }
+
+/* Collapsed behind "Filtreler" below desktop width - see the max-width:1199px block below. */
+.filter-toolbar-toggle {
+  display: none;
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.filter-toolbar-toggle span:first-child { display: inline-flex; align-items: center; gap: 8px; }
+
+.filter-toolbar-toggle[aria-expanded="true"] > span:last-child svg { transform: rotate(180deg); }
+
 .filter-chips {
   display: flex;
   align-items: center;
@@ -75,6 +103,15 @@
 .cell-secondary { color: var(--color-text-secondary); font-size: 12.5px; }
 .cell-muted { color: var(--color-text-muted); font-style: italic; }
 
+/* Only revealed at tablet widths, where the Proje Kodu / Hizmet Alanı columns are hidden and
+   folded into the Proje Adı cell instead - see the max-width:1199px block below. */
+.cell-meta-compact {
+  display: none;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
 .row-actions { display: flex; align-items: center; gap: 8px; position: relative; }
 
 .row-menu-trigger {
@@ -122,6 +159,49 @@
 .row-menu-panel button:hover, .row-menu-panel a:hover { background: var(--color-page-background); }
 
 /* ==========================================================================
+   Mobile project cards - rendered from the same pageItems as the desktop
+   table (see projects.js renderMobileCards); hidden above mobile widths.
+   ========================================================================== */
+.project-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  min-width: 0;
+}
+
+.project-card-header { min-width: 0; }
+.project-card-title { font-weight: 600; color: var(--color-text-primary); overflow-wrap: anywhere; }
+.project-card-meta { font-size: 12.5px; color: var(--color-text-secondary); margin-top: 2px; overflow-wrap: anywhere; }
+
+.project-card-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.project-card-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  min-width: 0;
+}
+
+.project-card-detail svg { flex-shrink: 0; color: var(--color-text-muted); }
+.project-card-detail span { overflow-wrap: anywhere; min-width: 0; }
+
+.project-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
    Pagination
    ========================================================================== */
 .pagination-bar {
@@ -165,14 +245,52 @@
 /* ==========================================================================
    Responsive
    ========================================================================== */
+
+/* Tablet (768px-1199px): sidebar goes off-canvas (see site.css), filters collapse behind a
+   toggle, and the table switches to a condensed column set instead of horizontal scrolling. */
 @media (max-width: 1199px) {
-  .filter-toolbar { grid-template-columns: repeat(2, 1fr); }
+  .filter-toolbar-toggle { display: flex; }
+
+  .filter-toolbar { display: none; grid-template-columns: repeat(2, 1fr); }
+  .filter-toolbar.open { display: grid; }
+
+  /* Proje Kodu and Hizmet Alanı fold into the Proje Adı cell (see .cell-meta-compact); Yazılım
+     Uzmanı and Sunucu/Web Adresi are dropped entirely to fit a tablet-width viewport without
+     horizontal scrolling. Same table markup, same data - only visibility changes. */
+  [data-col="projeKodu"],
+  [data-col="projeHizmetAlani"],
+  [data-col="yazilimUzmaniAdSoyad"],
+  [data-col="sunucu"] {
+    display: none;
+  }
+
+  .cell-meta-compact { display: block; }
+
+  .project-table { min-width: 0; width: 100%; }
 }
 
+/* Mobile (<768px): the desktop/tablet table is replaced entirely by project-mobile-list cards. */
 @media (max-width: 767px) {
+  .table-scroll { display: none !important; }
+  .project-mobile-list { display: flex; padding: 0; }
+
   .filter-toolbar { grid-template-columns: 1fr; }
-  .section-header-actions { width: 100%; }
-  .section-header-actions .app-button { flex: 1; justify-content: center; }
+
+  .section-header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .section-header-actions > *:first-child { grid-column: 1 / -1; }
+  .section-header-actions .app-button { justify-content: center; }
+
   .pagination-bar { flex-direction: column; align-items: stretch; text-align: center; }
   .pagination-controls { justify-content: center; }
+
+  /* Comfortable touch targets. */
+  .row-menu-trigger { width: 40px; height: 40px; }
+  .pagination-controls button { min-width: 40px; height: 40px; }
+  .app-button--sm { min-height: 40px; }
 }

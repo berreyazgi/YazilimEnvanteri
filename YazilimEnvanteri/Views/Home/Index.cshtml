@@ -37,34 +37,34 @@
 else
 {
     <div class="metric-grid">
-        <div class="app-card metric-card">
+        <a href="/Proje" class="app-card metric-card">
             <div>
                 <p class="metric-card-label">Toplam Proje</p>
                 <p class="metric-card-value">@Model.ToplamProje</p>
             </div>
             <span class="metric-card-icon metric-card-icon--info" data-icon="projects" data-icon-size="20"></span>
-        </div>
-        <div class="app-card metric-card">
+        </a>
+        <a href="/Proje?durum=Yay%C4%B1nda" class="app-card metric-card">
             <div>
                 <p class="metric-card-label">Yayındaki Projeler</p>
                 <p class="metric-card-value">@Model.YayindakiProje</p>
             </div>
             <span class="metric-card-icon metric-card-icon--success" data-icon="chart" data-icon-size="20"></span>
-        </div>
-        <div class="app-card metric-card">
+        </a>
+        <a href="/Proje?durum=Geli%C5%9Ftirme" class="app-card metric-card">
             <div>
                 <p class="metric-card-label">Geliştirme Aşamasında</p>
                 <p class="metric-card-value">@Model.GelistirmedekiProje</p>
             </div>
             <span class="metric-card-icon metric-card-icon--purple" data-icon="layers" data-icon-size="20"></span>
-        </div>
-        <div class="app-card metric-card">
+        </a>
+        <a href="/Proje?durum=Test%2F%C4%B0nceleme" class="app-card metric-card">
             <div>
                 <p class="metric-card-label">Test / İnceleme</p>
                 <p class="metric-card-value">@Model.TestIncelemeProje</p>
             </div>
             <span class="metric-card-icon metric-card-icon--warning" data-icon="alertTriangle" data-icon-size="20"></span>
-        </div>
+        </a>
     </div>
 
     <section class="analytics-placeholder">

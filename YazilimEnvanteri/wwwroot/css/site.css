@@ -586,30 +586,141 @@ table { border-collapse: collapse; }
 .tab-panel.active { display: block; }
 
 /* ==========================================================================
-   Responsive
+   Modal
    ========================================================================== */
-@media (max-width: 1199px) {
-  .sidebar { width: 76px; }
-  .sidebar-link span.sidebar-link-label { display: none; }
-  .sidebar-tagline { display: none; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 33, 61, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: var(--z-overlay);
 }
 
-@media (max-width: 767px) {
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-title { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-small);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover { background: var(--color-page-background); }
+
+.modal-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.modal-field--full { grid-column: 1 / -1; }
+
+.modal-field textarea.field-input { resize: vertical; min-height: 72px; }
+
+.modal-field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-top: 22px;
+}
+
+.modal-error {
+  grid-column: 1 / -1;
+  display: none;
+  padding: 10px 12px;
+  border-radius: var(--radius-small);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: 13px;
+}
+
+.modal-error.open { display: block; }
+
+/* ==========================================================================
+   Modal Slider (Desktop: fallback 2-col, Mobile: touch slider wizard)
+   ========================================================================== */
+.modal-slider-header { display: none; }
+.slide-badge { display: none; }
+.modal-slider-track { display: contents; }
+.modal-slide { display: contents; }
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: var(--color-page-background);
+  border-radius: var(--radius-pill);
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: var(--radius-pill);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+/* Tablet + mobile (<1200px): the permanently-visible desktop sidebar becomes an off-canvas
+   drawer opened via the hamburger button, matching the reference's tablet/mobile behavior. */
+@media (max-width: 1199px) {
   .menu-toggle { display: inline-flex; }
 
   .masthead-right { display: none; }
 
-  .masthead-title { font-size: 16px; }
-  .masthead-subtitle { display: none; }
+  .content { padding: 20px 24px 40px; }
 
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
-    width: 240px;
+    width: 260px;
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    transition: transform 0.25s ease;
     z-index: var(--z-overlay);
   }
 
@@ -617,10 +728,158 @@ table { border-collapse: collapse; }
 
   .sidebar-link span.sidebar-link-label { display: inline; }
   .sidebar-tagline { display: flex; }
+}
+
+@media (max-width: 767px) {
+  .masthead-title { font-size: 16px; }
+  .masthead-subtitle { display: none; }
+
+  .sidebar { width: 240px; }
 
   .content { padding: 16px 16px 32px; }
 
   .app-topbar { flex-direction: column; align-items: stretch; }
-  .search-box { max-width: none; order: 3; }
   .topbar-right { justify-content: space-between; }
+
+  /* The page heading below already repeats "Projelerim" with its full description, and search
+     is still reachable through the (synced) filter-toolbar search field - see projects.js
+     bindSearchAndFilters, which already handles multiple [data-project-search] elements. */
+  .app-topbar-title { display: none; }
+  .search-box { display: none; }
+
+  .modal-body { grid-template-columns: 1fr; }
+  .modal-field-checkbox { margin-top: 0; }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 24px);
+    border-radius: var(--radius-medium);
+  }
+
+  .modal-slider-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--color-page-background);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .slider-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--color-border);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+  }
+
+  .slider-progress-fill {
+    height: 100%;
+    background: var(--color-primary);
+    transition: width 0.3s ease;
+  }
+
+  .slider-step-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  .slider-step-title {
+    color: var(--color-text-primary);
+  }
+
+  .slider-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .slider-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-border);
+    border: none;
+    padding: 0;
+    transition: all 0.25s ease;
+    cursor: pointer;
+  }
+
+  .slider-dot.active {
+    width: 24px;
+    border-radius: 12px;
+    background: var(--color-primary);
+  }
+
+  .slide-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--color-primary-light);
+    padding: 4px 8px;
+    border-radius: var(--radius-small);
+    margin-bottom: 6px;
+    width: fit-content;
+  }
+
+  .modal-body {
+    display: block;
+    padding: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    touch-action: pan-y;
+  }
+
+  .modal-slider-track {
+    display: flex;
+    width: 100%;
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .modal-slide {
+    min-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    opacity: 0.25;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .modal-slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .modal-footer .app-button {
+    flex: 1;
+    justify-content: center;
+  }
 }
+
+/* Prevents the page behind the off-canvas drawer from scrolling while it's open (see
+   sidebar.js). */
+body.sidebar-open { overflow: hidden; }
