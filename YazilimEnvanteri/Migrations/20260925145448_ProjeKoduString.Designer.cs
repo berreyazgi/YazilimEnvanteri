@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using YazilimEnvanteri.Data;
@@ -11,9 +12,11 @@ using YazilimEnvanteri.Data;
 namespace YazilimEnvanteri.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260925145448_ProjeKoduString")]
+    partial class ProjeKoduString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,11 +172,6 @@ namespace YazilimEnvanteri.Migrations
                     b.Property<int>("ProjeKritiklik")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("SilindiMi")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("Sunucu")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -195,8 +193,7 @@ namespace YazilimEnvanteri.Migrations
                     b.HasIndex("BirimId");
 
                     b.HasIndex("ProjeKodu")
-                        .IsUnique()
-                        .HasFilter("\"SilindiMi\" = FALSE");
+                        .IsUnique();
 
                     b.HasIndex("TeknolojiId");
 

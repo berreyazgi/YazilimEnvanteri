@@ -8,33 +8,7 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body data-page="@(ViewData["Page"] ?? "")" data-nav-key="@(ViewData["NavKey"] ?? "")">
-    <header class="masthead">
-        <div class="masthead-left">
-            <button type="button" class="menu-toggle" data-sidebar-toggle aria-label="Menüyü aç/kapat" aria-expanded="false">
-                <span data-icon="menu" data-icon-size="20"></span>
-            </button>
-            <span class="masthead-logo">
-                <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="4" width="12" height="12" rx="3" fill="#2F6FED" />
-                    <rect x="18" y="4" width="12" height="12" rx="3" fill="#8FB3F7" />
-                    <rect x="4" y="18" width="12" height="12" rx="3" fill="#8FB3F7" />
-                    <rect x="18" y="18" width="12" height="12" rx="3" fill="#1B3F8F" />
-                </svg>
-            </span>
-            <div>
-                <h2 class="masthead-title" data-masthead-title></h2>
-                <p class="masthead-subtitle" data-masthead-subtitle></p>
-            </div>
-        </div>
-        <div class="masthead-right">
-            <div class="masthead-block" data-masthead-right-top></div>
-            <div class="masthead-divider"></div>
-            <div class="masthead-block">
-                <span data-masthead-right-bottom-line></span>
-                <span class="masthead-accent" data-masthead-right-bottom-accent></span>
-            </div>
-        </div>
-    </header>
+    <partial name="_MobileHeader" />
 
     <div class="app-shell">
         <partial name="_Sidebar" />
@@ -44,7 +18,10 @@
         </main>
     </div>
 
+    <div class="toast-container" data-toast-container aria-live="polite"></div>
+
     <script src="~/js/config/app-config.js" asp-append-version="true"></script>
+    <script src="~/js/modules/toast.js" asp-append-version="true"></script>
     <script src="~/js/modules/sidebar.js" asp-append-version="true"></script>
     <script src="~/js/modules/dropdown.js" asp-append-version="true"></script>
     <script src="~/js/modules/filters.js" asp-append-version="true"></script>

@@ -1,5 +1,5 @@
 using Dapper;
-using YazilimEnvanteri.Data.Dapper;
+using Npgsql;
 using YazilimEnvanteri.Models.Entities;
 using YazilimEnvanteri.Models.Entities.Enums;
 using YazilimEnvanteri.Models.ViewModels;
@@ -7,29 +7,13 @@ using YazilimEnvanteri.Services.Interfaces;
 
 namespace YazilimEnvanteri.Services.Implementations
 {
-    public class ProjeService : IProjeService
+    public class ProjeService(NpgsqlDataSource dataSource) : IProjeService
     {
-        private readonly IDbConnectionFactory _connectionFactory;
-
-        public ProjeService(IDbConnectionFactory connectionFactory)
-        {
-            _connectionFactory = connectionFactory;
-        }
-
-        public async Task<IReadOnlyList<ProjeEntity>> GetAllAsync()
-        {
-            const string sql = "SELECT * FROM \"Proje\".\"Proje\" ORDER BY \"Id\";";
-
-            using var connection = _connectionFactory.CreateConnection();
-            var result = await connection.QueryAsync<ProjeEntity>(sql);
-            return result.AsList();
-        }
-
         public async Task<ProjeEntity?> GetByIdAsync(int id)
         {
-            const string sql = "SELECT * FROM \"Proje\".\"Proje\" WHERE \"Id\" = @Id;";
+            const string sql = "SELECT * FROM \"Proje\".\"Proje\" WHERE \"Id\" = @Id AND NOT \"SilindiMi\";";
 
-            using var connection = _connectionFactory.CreateConnection();
+            using var connection = dataSource.CreateConnection();
             return await connection.QuerySingleOrDefaultAsync<ProjeEntity>(sql, new { Id = id });
         }
 
@@ -47,7 +31,7 @@ namespace YazilimEnvanteri.Services.Implementations
 
             entity.OlusturmaTarihi = DateTime.UtcNow;
 
-            using var connection = _connectionFactory.CreateConnection();
+            using var connection = dataSource.CreateConnection();
             return await connection.QuerySingleAsync<int>(sql, entity);
         }
 
@@ -68,45 +52,70 @@ namespace YazilimEnvanteri.Services.Implementations
                     "ProjeDurum" = @ProjeDurum,
                     "ProjeKritiklik" = @ProjeKritiklik,
                     "GuncellemeTarihi" = @GuncellemeTarihi
-                WHERE "Id" = @Id;
+                WHERE "Id" = @Id AND NOT "SilindiMi";
                 """;
 
             entity.GuncellemeTarihi = DateTime.UtcNow;
 
-            using var connection = _connectionFactory.CreateConnection();
+            using var connection = dataSource.CreateConnection();
             var affected = await connection.ExecuteAsync(sql, entity);
             return affected > 0;
         }
 
+        // Pasif silme: kayıt tabloda kalır, yalnızca SilindiMi işaretlenir ve tüm sorgulardan düşer.
         public async Task<bool> DeleteAsync(int id)
         {
-            const string sql = "DELETE FROM \"Proje\".\"Proje\" WHERE \"Id\" = @Id;";
+            const string sql = """
+                UPDATE "Proje"."Proje"
+                SET "SilindiMi" = TRUE, "GuncellemeTarihi" = @Simdi
+                WHERE "Id" = @Id AND NOT "SilindiMi";
+                """;
 
-            using var connection = _connectionFactory.CreateConnection();
-            var affected = await connection.ExecuteAsync(sql, new { Id = id });
+            using var connection = dataSource.CreateConnection();
+            var affected = await connection.ExecuteAsync(sql, new { Id = id, Simdi = DateTime.UtcNow });
             return affected > 0;
+        }
+
+        public async Task<bool> ProjeKoduKullaniliyorMuAsync(string projeKodu, int? haricTutulanProjeId = null)
+        {
+            // Codes are stored normalized (upper-case), so a plain equality check is enough; the
+            // excluded id lets a project keep its own code while being edited.
+            const string sql = """
+                SELECT EXISTS (
+                    SELECT 1 FROM "Proje"."Proje"
+                    WHERE "ProjeKodu" = @ProjeKodu AND NOT "SilindiMi" AND (@HaricId IS NULL OR "Id" <> @HaricId)
+                );
+                """;
+
+            using var connection = dataSource.CreateConnection();
+            return await connection.ExecuteScalarAsync<bool>(sql, new { ProjeKodu = projeKodu, HaricId = haricTutulanProjeId });
         }
 
         public async Task<IReadOnlyList<ProjeListItemViewModel>> GetProjeListAsync()
         {
-            using var connection = _connectionFactory.CreateConnection();
-            var rows = await connection.QueryAsync<ProjeListRow>(ProjeListSql);
+            // Newest-first by default (most recently edited, falling back to most recently created)
+            // rather than table/insertion order - a manually-sortable "Proje Kodu" column on the
+            // client (see wwwroot/js/modules/projects.js) doesn't guarantee that ordering on its own.
+            const string sql = ProjeListSql + "\nWHERE NOT p.\"SilindiMi\"\nORDER BY COALESCE(p.\"GuncellemeTarihi\", p.\"OlusturmaTarihi\") DESC;";
+
+            using var connection = dataSource.CreateConnection();
+            var rows = await connection.QueryAsync<ProjeListRow>(sql);
             return rows.Select(MapToViewModel).ToList();
         }
 
         public async Task<ProjeListItemViewModel?> GetProjeDetailAsync(int id)
         {
-            using var connection = _connectionFactory.CreateConnection();
+            using var connection = dataSource.CreateConnection();
             var row = await connection.QuerySingleOrDefaultAsync<ProjeListRow>(
-                ProjeListSql + " WHERE p.\"Id\" = @Id;", new { Id = id });
+                ProjeListSql + " WHERE p.\"Id\" = @Id AND NOT p.\"SilindiMi\";", new { Id = id });
             return row is null ? null : MapToViewModel(row);
         }
 
         public async Task<DashboardViewModel> GetDashboardSummaryAsync()
         {
-            const string sql = "SELECT \"ProjeDurum\", COUNT(*) AS \"Count\" FROM \"Proje\".\"Proje\" GROUP BY \"ProjeDurum\";";
+            const string sql = "SELECT \"ProjeDurum\", COUNT(*) AS \"Count\" FROM \"Proje\".\"Proje\" WHERE NOT \"SilindiMi\" GROUP BY \"ProjeDurum\";";
 
-            using var connection = _connectionFactory.CreateConnection();
+            using var connection = dataSource.CreateConnection();
             var result = await connection.QueryAsync<DurumCountRow>(sql);
             var counts = result.AsList();
 
@@ -118,7 +127,7 @@ namespace YazilimEnvanteri.Services.Implementations
                 ToplamProje = counts.Sum(c => c.Count),
                 YayindakiProje = CountFor(ProjeDurum.Yayında),
                 GelistirmedekiProje = CountFor(ProjeDurum.Geliştirme),
-                TestIncelemeProje = CountFor(ProjeDurum.Test, ProjeDurum.İnceleme)
+                TestProje = CountFor(ProjeDurum.Test)
             };
         }
 
@@ -128,8 +137,9 @@ namespace YazilimEnvanteri.Services.Implementations
             public int Count { get; set; }
         }
 
-        // One joined query covering all four related tables, instead of one round trip per
-        // table (Proje -> Birim / YazilimUzmani / Teknoloji).
+        // One joined query covering all related tables, instead of one round trip per table
+        // (Proje -> Birim / YazilimUzmani -> Personel / Teknoloji). The specialist's identity
+        // fields live on Personeller; YazilimUzmanlari only contributes SorumluFirma.
         private const string ProjeListSql = """
             SELECT
                 p."Id"                 AS "Id",
@@ -145,12 +155,12 @@ namespace YazilimEnvanteri.Services.Implementations
                 b."Birim"               AS "Birim",
                 b."UstBirim"            AS "UstBirim",
                 b."AltBirim"            AS "AltBirim",
-                y."Ad"                  AS "YazilimUzmaniAd",
-                y."Soyad"               AS "YazilimUzmaniSoyad",
-                y."KullanıcıAdi"        AS "YazilimUzmaniKullaniciAdi",
-                y."Gorev"               AS "YazilimUzmaniGorev",
-                y."Email"               AS "YazilimUzmaniEposta",
-                y."Telefon"             AS "YazilimUzmaniTelefon",
+                per."Ad"                AS "YazilimUzmaniAd",
+                per."Soyad"             AS "YazilimUzmaniSoyad",
+                per."KullanıcıAdi"      AS "YazilimUzmaniKullaniciAdi",
+                per."Gorev"             AS "YazilimUzmaniGorev",
+                per."Email"             AS "YazilimUzmaniEposta",
+                per."Telefon"           AS "YazilimUzmaniTelefon",
                 y."SorumluFirma"        AS "YazilimUzmaniSorumluFirma",
                 t."BackendTeknoloji"    AS "BackendTeknoloji",
                 t."FrontendTeknoloji"   AS "FrontendTeknoloji",
@@ -160,6 +170,7 @@ namespace YazilimEnvanteri.Services.Implementations
             FROM "Proje"."Proje" p
             LEFT JOIN "Birimler" b ON b."Id" = p."BirimId"
             LEFT JOIN "YazilimUzmanlari" y ON y."Id" = p."YazilimUzmaniId"
+            LEFT JOIN "Personeller" per ON per."Id" = y."PersonelId"
             LEFT JOIN "Teknolojiler" t ON t."Id" = p."TeknolojiId"
             """;
 
@@ -184,7 +195,7 @@ namespace YazilimEnvanteri.Services.Implementations
             YazilimUzmaniKullaniciAdi = r.YazilimUzmaniKullaniciAdi,
             YazilimUzmaniGorev = r.YazilimUzmaniGorev,
             YazilimUzmaniEposta = r.YazilimUzmaniEposta,
-            YazilimUzmaniTelefon = r.YazilimUzmaniTelefon?.ToString(),
+            YazilimUzmaniTelefon = r.YazilimUzmaniTelefon,
             YazilimUzmaniSorumluFirma = r.YazilimUzmaniSorumluFirma,
 
             BackendTeknoloji = r.BackendTeknoloji,
@@ -199,7 +210,7 @@ namespace YazilimEnvanteri.Services.Implementations
         private sealed class ProjeListRow
         {
             public int Id { get; set; }
-            public int ProjeKodu { get; set; }
+            public string ProjeKodu { get; set; } = string.Empty;
             public string ProjeAdi { get; set; } = string.Empty;
             public string ProjeHizmetAlani { get; set; } = string.Empty;
             public string ProjeAciklamasi { get; set; } = string.Empty;
@@ -218,7 +229,7 @@ namespace YazilimEnvanteri.Services.Implementations
             public string? YazilimUzmaniKullaniciAdi { get; set; }
             public string? YazilimUzmaniGorev { get; set; }
             public string? YazilimUzmaniEposta { get; set; }
-            public int? YazilimUzmaniTelefon { get; set; }
+            public string? YazilimUzmaniTelefon { get; set; }
             public string? YazilimUzmaniSorumluFirma { get; set; }
 
             public string? BackendTeknoloji { get; set; }

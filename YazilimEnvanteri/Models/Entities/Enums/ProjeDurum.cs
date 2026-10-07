@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace YazilimEnvanteri.Models.Entities.Enums
 {
@@ -6,8 +6,8 @@ namespace YazilimEnvanteri.Models.Entities.Enums
     {
         Analiz = 1,
         Geliştirme,
-        İnceleme,
-        Test,
+        // 3 was İnceleme - removed; existing rows moved to Test (migration RemoveIncelemeDurum).
+        Test = 4,
         Tamamlanmış,
         Yayında
 

@@ -43,12 +43,16 @@
       });
     });
 
-    // Resizing past the desktop breakpoint while the drawer is open would otherwise leave the
-    // body scroll lock stuck (the drawer itself is harmless there since it's no longer
-    // position:fixed, but the lock isn't tied to any breakpoint on its own).
-    window.addEventListener("resize", function () {
-      if (window.innerWidth >= 1200) closeSidebar();
-    });
+    // Leaving drawer mode (e.g. rotating a tablet to a wide landscape) while the drawer is open
+    // would otherwise leave the body scroll lock stuck. Drawer mode is capability-based (see
+    // AppConfig.media.touchCompact), so resizing a desktop window never enters or leaves it.
+    var drawerQuery = window.matchMedia(window.AppConfig.media.touchCompact);
+    var onDrawerModeChange = function (e) { if (!e.matches) closeSidebar(); };
+    if (drawerQuery.addEventListener) {
+      drawerQuery.addEventListener("change", onDrawerModeChange);
+    } else {
+      drawerQuery.addListener(onDrawerModeChange);
+    }
   }
 
   window.Sidebar = { init: init };

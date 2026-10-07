@@ -30,7 +30,10 @@
 .detail-code { font-size: 13px; color: var(--color-text-secondary); }
 .detail-description { margin: 0; font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
 
-.detail-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.detail-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* "Web Sitesini Aç" is a header button on wider screens and a "..." menu item on mobile. */
+.detail-header-actions .detail-menu-website { display: none; }
 
 /* ==========================================================================
    Info cards
@@ -86,7 +89,8 @@
 }
 
 /* ==========================================================================
-   Responsive
+   Responsive - grid layouts follow the available width; the phone-style header
+   is capability-based (AppConfig.media.phone) so narrow desktop windows keep it.
    ========================================================================== */
 @media (max-width: 991px) {
   .detail-grid { grid-template-columns: 1fr; }
@@ -94,6 +98,20 @@
 
 @media (max-width: 767px) {
   .info-grid { grid-template-columns: 1fr; }
-  .detail-header-actions { width: 100%; }
-  .detail-header-actions .app-button { flex: 1; justify-content: center; }
+}
+
+@media (hover: none) and (pointer: coarse) and (max-width: 767px) {
+  /* Title on the left, Düzenle + ... pinned to the right so editing stays reachable. */
+  .detail-header { flex-wrap: nowrap; gap: 12px; }
+  .detail-header-main { flex: 1; min-width: 0; }
+  .detail-title { font-size: 19px; overflow-wrap: anywhere; }
+  .detail-header-actions { flex-shrink: 0; flex-wrap: nowrap; gap: 8px; }
+  .detail-header-actions .detail-website-button { display: none; }
+  .detail-header-actions .detail-menu-website { display: block; }
+  .detail-header-actions .app-button { min-height: 40px; padding: 8px 12px; }
+}
+
+/* Very narrow phones: Düzenle becomes icon-only rather than squeezing the title. */
+@media (hover: none) and (pointer: coarse) and (max-width: 359px) {
+  .detail-header-actions .app-button[data-edit-proje] { font-size: 0; gap: 0; width: 40px; justify-content: center; }
 }

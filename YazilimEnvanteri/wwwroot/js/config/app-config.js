@@ -2,17 +2,6 @@
   "use strict";
 
   window.AppConfig = {
-    branding: {
-      applicationName: "Yazılım Envanteri ve Yönetim Portalı",
-      subtitle: "Personel • Uygulamalar • Altyapı • Daha Bağlantılı Bir Organizasyon",
-      masthead: {
-        rightTop: ["Tek Platform", "Tam Görünürlük", "Daha Güçlü Yönetim"],
-        rightBottomLine: "Takip Et • Yönet • İş Birliği Yap",
-        rightBottomAccent: "Daha Akıllı Sistemler Oluştur"
-      },
-      tagline: ["Daha İyi Uygulamalar", "Daha Güçlü", "Kamu Hizmetleri"]
-    },
-
     navigation: [
       { key: "home", label: "Ana Sayfa", icon: "home", href: "/", enabled: true },
       { key: "projects", label: "Projelerim", icon: "projects", href: "/Proje", enabled: true },
@@ -21,6 +10,16 @@
       { key: "personnel", label: "Personel", icon: "users", href: "#", enabled: false },
       { key: "settings", label: "Ayarlar", icon: "settings", href: "#", enabled: false }
     ],
+
+    // "Mobile mode" is decided by input capability, not by viewport width alone, so a narrow
+    // desktop window keeps the desktop shell. Keep these in sync with the @media queries in
+    // site.css / projects.css / project-detail.css (CSS can't read these strings).
+    //   touchCompact: touch-first device below desktop width -> off-canvas sidebar + mobile header
+    //   phone:        touch-first phone -> card list, single-column filters, slider form
+    media: {
+      touchCompact: "(hover: none) and (pointer: coarse) and (max-width: 1199px)",
+      phone: "(hover: none) and (pointer: coarse) and (max-width: 767px)"
+    },
 
     currentUser: {
       adSoyad: "Kullanıcı",
@@ -68,7 +67,6 @@
     statusThemes: {
       "Analiz": { label: "Analiz", tone: "purple", value: 1 },
       "Geliştirme": { label: "Geliştirme", tone: "info", value: 2 },
-      "İnceleme": { label: "İnceleme", tone: "warning", value: 3 },
       "Test": { label: "Test", tone: "orange", value: 4 },
       "Tamamlanmış": { label: "Tamamlanmış", tone: "teal", value: 5 },
       "Yayında": { label: "Yayında", tone: "success", value: 6 }
@@ -98,7 +96,10 @@
       { id: "developer", title: "Sorumlu Yazılım Uzmanı", theme: "orange", icon: "user" }
     ],
 
-    pageSizeOptions: [5, 10, 20, 50],
+    // "all" is a sentinel handled specially by pagination.js/projects.js - it means "every
+    // filtered result on one page", not a literal page size number.
+    pageSizeOptions: [5, 10, 20, 50, "all"],
+    pageSizeLabels: { all: "Tümü" },
     defaultPageSize: 10,
 
     icons: {
@@ -126,8 +127,17 @@
       alertTriangle: '<path d="M12 4l9 16H3L12 4Z" /><path d="M12 10v4" /><path d="M12 17h.01" />',
       sortAsc: '<path d="M7 15l5-5 5 5" />',
       sortDesc: '<path d="M7 9l5 5 5-5" />',
-      sortNeutral: '<path d="M8 9l4-4 4 4" /><path d="M16 15l-4 4-4-4" />'
+      sortNeutral: '<path d="M8 9l4-4 4 4" /><path d="M16 15l-4 4-4-4" />',
+      trash: '<path d="M4 7h16" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M6 7l1 13h10l1-13" /><path d="M9 7V4h6v3" />',
+      edit: '<path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />',
+      help: '<circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6" /><path d="M12 17h.01" />'
     }
+  };
+
+  window.AppConfig.escapeHtml = function (value) {
+    return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
   };
 
   window.AppConfig.icon = function (key, size) {

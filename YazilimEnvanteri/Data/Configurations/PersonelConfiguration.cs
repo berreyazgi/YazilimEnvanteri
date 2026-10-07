@@ -17,6 +17,13 @@ namespace YazilimEnvanteri.Data.Configurations
 
             builder.HasIndex(p => p.BirimId);
 
+            builder.Property(p => p.KullanıcıAdi)
+                .IsRequired(false)
+                .HasMaxLength(50);
+
+            builder.HasIndex(p => p.KullanıcıAdi);
+            builder.HasIndex(p => p.Email);
+
             builder.Property(p => p.Ad)
                 .IsRequired()
                 .HasMaxLength(100);

@@ -8,12 +8,14 @@
     filteredProjects: [],
     dataError: false,
 
+    // hizmetAlani/birim/durum/kritiklik are multi-select: values inside one array are OR-ed,
+    // the different filters are AND-ed (same rule as ProjeController.ApplyFilter for exports).
     filters: {
       search: "",
-      hizmetAlani: "",
-      birim: "",
-      durum: "",
-      kritiklik: "",
+      hizmetAlani: [],
+      birim: [],
+      durum: [],
+      kritiklik: [],
       sadeceAktif: false,
       sadeceWebAdresiOlan: false
     },
@@ -28,6 +30,19 @@
       direction: "asc"
     }
   };
+
+  // Multi-select filter key -> the project field it matches against.
+  var MULTI_FILTER_FIELDS = {
+    hizmetAlani: "projeHizmetAlani",
+    birim: "birim",
+    durum: "projeDurum",
+    kritiklik: "projeKritiklik"
+  };
+
+  // Choices.js instances by filter key (absent when the library didn't load - the native
+  // <select multiple> then keeps working on its own).
+  var filterChoices = {};
+  var syncingFilterControls = false;
 
   function normalize(value) {
     return String(value == null ? "" : value).toLocaleLowerCase("tr-TR");
@@ -63,19 +78,13 @@
 
     state.filteredProjects = state.projects.filter(function (p) {
       if (!matchesSearch(p, term)) return false;
-      if (f.hizmetAlani && p.projeHizmetAlani !== f.hizmetAlani) return false;
-      if (f.birim && p.birim !== f.birim) return false;
 
-      if (f.durum) {
-        var dNorm = normalize(f.durum);
-        if (dNorm === "testinceleme" || dNorm === "test_inceleme" || dNorm === "test / inceleme" || dNorm === "test / i̇nceleme") {
-          if (p.projeDurum !== "Test" && p.projeDurum !== "İnceleme") return false;
-        } else if (normalize(p.projeDurum) !== dNorm && p.projeDurum !== f.durum) {
-          return false;
-        }
-      }
+      var failsMultiFilter = Object.keys(MULTI_FILTER_FIELDS).some(function (key) {
+        var selected = f[key];
+        return selected.length > 0 && selected.indexOf(p[MULTI_FILTER_FIELDS[key]]) === -1;
+      });
+      if (failsMultiFilter) return false;
 
-      if (f.kritiklik && p.projeKritiklik !== f.kritiklik) return false;
       if (f.sadeceAktif && !p.projeAktifMi) return false;
       if (f.sadeceWebAdresiOlan && !p.websiteUrl) return false;
       return true;
@@ -89,27 +98,37 @@
     var field = state.sort.field;
     if (!field) return;
     var direction = state.sort.direction === "desc" ? -1 : 1;
+    // Durum/Kritiklik sort by their enum order (Analiz -> Yayında, Düşük -> Yüksek), not alphabetically.
+    var themes = { projeDurum: cfg.statusThemes, projeKritiklik: cfg.criticalityThemes }[field];
+    var key = function (p) {
+      var theme = themes && themes[p[field]];
+      return theme ? theme.value : p[field];
+    };
 
     state.filteredProjects.sort(function (a, b) {
-      var av = a[field];
-      var bv = b[field];
+      var av = key(a);
+      var bv = key(b);
       if (typeof av === "number" && typeof bv === "number") {
         return (av - bv) * direction;
       }
-      return normalize(av).localeCompare(normalize(bv), "tr-TR") * direction;
+      // numeric: true keeps mixed codes in natural order (PRJ-9 before PRJ-10, 999 before 1000).
+      return normalize(av).localeCompare(normalize(bv), "tr-TR", { numeric: true }) * direction;
     });
   }
 
-  function escapeHtml(value) {
-    return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
-    });
-  }
+  var escapeHtml = window.AppConfig.escapeHtml;
 
   function badgeMarkup(value, themeMap) {
     if (!value) return '<span class="status-badge status-badge--neutral">Bilgi yok</span>';
     var theme = themeMap[value] || { label: value, tone: "neutral" };
     return '<span class="status-badge status-badge--' + theme.tone + '">' + escapeHtml(theme.label) + "</span>";
+  }
+
+  // The table clamps long text to fit its fixed column widths (projects.css), so every text
+  // block carries its full value as a tooltip.
+  function clampedText(value, className) {
+    var text = escapeHtml(value);
+    return '<div class="' + className + '" title="' + text + '">' + text + "</div>";
   }
 
   function cellMarkup(project, column) {
@@ -118,30 +137,28 @@
 
     if (column.key === "sunucu") {
       var parts = [];
-      if (project.sunucu) parts.push('<div class="cell-title">' + escapeHtml(project.sunucu) + "</div>");
-      if (project.websiteUrl) {
-        parts.push('<div class="cell-secondary">' + escapeHtml(project.websiteUrl) + "</div>");
-      }
+      if (project.sunucu) parts.push(clampedText(project.sunucu, "cell-title cell-clamp"));
+      if (project.websiteUrl) parts.push(clampedText(project.websiteUrl, "cell-secondary cell-clamp"));
       return parts.length ? parts.join("") : '<span class="cell-muted">Bilgi bulunmuyor</span>';
     }
 
     if (column.key === "projeAdi") {
-      // The extra line is only ever shown by CSS at tablet widths, where the Proje Kodu /
-      // Hizmet Alanı columns are hidden and folded into this cell instead - no separate
-      // tablet render path, just a breakpoint-controlled reveal of markup that's always there.
+      // The extra line is only ever shown by CSS when the table card is narrow, where the Proje
+      // Kodu / Hizmet Alanı columns are hidden and folded into this cell instead - no separate
+      // render path, just a container-query-controlled reveal of markup that's always there.
       return (
-        '<div class="cell-title">' + escapeHtml(project.projeAdi) + "</div>" +
-        '<div class="cell-meta-compact">Kod: ' + escapeHtml(project.projeKodu) + " · " + escapeHtml(project.projeHizmetAlani) + "</div>"
+        clampedText(project.projeAdi, "cell-title cell-clamp") +
+        clampedText("Kod: " + project.projeKodu + " · " + project.projeHizmetAlani, "cell-meta-compact cell-clamp")
       );
     }
 
     var value = project[column.key];
     if (!value) return '<span class="cell-muted">Bilgi bulunmuyor</span>';
-    return escapeHtml(value);
+    return clampedText(value, "cell-clamp");
   }
 
   // Shared between desktop table rows and mobile cards so there is exactly one place that
-  // knows what actions a project row exposes (Detaylar / Web Sitesini Aç / Bilgileri Kopyala).
+  // knows what actions a project row exposes (Detaylar / Web Sitesini Aç / Projeyi Sil).
   function projectActionsMarkup(project) {
     var websiteAction = project.websiteUrl
       ? '<a href="' + escapeHtml(project.websiteUrl) + '" target="_blank" rel="noopener">' + cfg.icon("externalLink", 15) + " Web Sitesini Aç</a>"
@@ -150,31 +167,37 @@
     return (
       '<div class="row-actions">' +
       '<a class="app-button app-button--outline app-button--sm" href="/Proje/Details/' + project.id + '">Detaylar</a>' +
-      '<button type="button" class="row-menu-trigger" data-row-menu-trigger="' + project.id + '" aria-haspopup="true" aria-expanded="false" aria-label="Diğer işlemler">' + cfg.icon("moreHorizontal", 16) + "</button>" +
-      '<div class="row-menu-panel" id="row-menu-' + project.id + '">' +
+      '<button type="button" class="row-menu-trigger" data-row-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Diğer işlemler">' + cfg.icon("moreHorizontal", 16) + "</button>" +
+      '<div class="row-menu-panel">' +
       '<a href="/Proje/Details/' + project.id + '">' + cfg.icon("externalLink", 15) + " Detayı Görüntüle</a>" +
+      '<button type="button" data-edit-proje="' + project.id + '">' + cfg.icon("edit", 15) + " Projeyi Düzenle</button>" +
       websiteAction +
-      '<button type="button" data-copy-info="' + project.id + '">' + cfg.icon("copy", 15) + " Bilgileri Kopyala</button>" +
+      '<button type="button" class="row-menu-danger" data-delete-proje="' + project.id + '">' + cfg.icon("trash", 15) + " Projeyi Sil</button>" +
       "</div></div>"
     );
   }
 
-  // Binds the row-menu-trigger/copy-info handlers inside whichever container was just
+  // Binds the row-menu-trigger/edit/delete handlers inside whichever container was just
   // re-rendered - the table body or the mobile card list both use this.
   function bindRowActionEvents(container) {
+    // The panel is the trigger's own sibling. (It used to be looked up by id, but the table row
+    // and the mobile card render the same project twice, so on mobile the lookup found the hidden
+    // table copy and the "..." button appeared to do nothing.)
     container.querySelectorAll("[data-row-menu-trigger]").forEach(function (trigger) {
-      var panel = document.getElementById("row-menu-" + trigger.getAttribute("data-row-menu-trigger"));
-      if (panel) window.Dropdown.bind(trigger, panel);
+      var panel = trigger.nextElementSibling;
+      if (panel && panel.classList.contains("row-menu-panel")) window.Dropdown.bind(trigger, panel);
     });
 
-    container.querySelectorAll("[data-copy-info]").forEach(function (btn) {
+    container.querySelectorAll("[data-delete-proje]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var id = Number(btn.getAttribute("data-copy-info"));
-        var project = state.projects.find(function (p) { return p.id === id; });
-        if (!project || !navigator.clipboard) return;
-        var text = [project.projeAdi, project.projeKodu, project.projeHizmetAlani, project.sunucu, project.websiteUrl]
-          .filter(Boolean).join(" • ");
-        navigator.clipboard.writeText(text);
+        window.ProjectForm.deleteProje(Number(btn.getAttribute("data-delete-proje")));
+      });
+    });
+
+    container.querySelectorAll("[data-edit-proje]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = Number(btn.getAttribute("data-edit-proje"));
+        if (window.ProjectForm) window.ProjectForm.openEdit(id);
       });
     });
   }
@@ -188,7 +211,7 @@
       var indicator = col.sortable ? '<span class="sort-indicator" data-sort-indicator="' + col.key + '">' + cfg.icon("sortNeutral", 12) + "</span>" : "";
       return "<th data-col=\"" + col.key + "\"" + sortAttr + ">" + escapeHtml(col.label) + indicator + "</th>";
     });
-    cells.push("<th>İşlemler</th>");
+    cells.push("<th data-col=\"actions\">İşlemler</th>");
     head.innerHTML = "<tr>" + cells.join("") + "</tr>";
 
     head.querySelectorAll("th.sortable").forEach(function (th) {
@@ -250,14 +273,14 @@
         return '<td data-col="' + col.key + '">' + cellMarkup(project, col) + "</td>";
       }).join("");
 
-      return "<tr>" + cells + "<td>" + projectActionsMarkup(project) + "</td></tr>";
+      return "<tr>" + cells + "<td data-col=\"actions\">" + projectActionsMarkup(project) + "</td></tr>";
     }).join("");
 
     bindRowActionEvents(body);
   }
 
   // Card representation of the exact same pageItems used by renderRows - only ever shown by
-  // CSS at mobile widths, never chosen/detected here in JS.
+  // CSS on touch phones, never chosen/detected here in JS.
   function projectCardMarkup(project) {
     var uzmanText = project.yazilimUzmaniAdSoyad
       ? escapeHtml(project.yazilimUzmaniAdSoyad)
@@ -298,14 +321,21 @@
 
   function renderAll() {
     updateSortIndicators();
-    window.Filters.renderChips(state, cfg);
+    window.Filters.render(state);
 
     var totalItems = state.filteredProjects.length;
-    var totalPages = Math.max(1, Math.ceil(totalItems / state.pagination.pageSize));
-    if (state.pagination.page > totalPages) state.pagination.page = totalPages;
+    var pageItems;
 
-    var start = (state.pagination.page - 1) * state.pagination.pageSize;
-    var pageItems = state.filteredProjects.slice(start, start + state.pagination.pageSize);
+    if (state.pagination.pageSize === "all") {
+      state.pagination.page = 1;
+      pageItems = state.filteredProjects;
+    } else {
+      var totalPages = Math.max(1, Math.ceil(totalItems / state.pagination.pageSize));
+      if (state.pagination.page > totalPages) state.pagination.page = totalPages;
+
+      var start = (state.pagination.page - 1) * state.pagination.pageSize;
+      pageItems = state.filteredProjects.slice(start, start + state.pagination.pageSize);
+    }
 
     renderRows(pageItems);
     renderMobileCards(pageItems);
@@ -325,11 +355,13 @@
       });
     });
 
-    ["hizmetAlani", "birim", "durum", "kritiklik"].forEach(function (key) {
+    Object.keys(MULTI_FILTER_FIELDS).forEach(function (key) {
       var select = document.querySelector('[data-project-filter="' + key + '"]');
       if (!select) return;
       select.addEventListener("change", function () {
-        state.filters[key] = select.value;
+        if (syncingFilterControls) return;
+        state.filters[key] = selectedValues(key, select);
+        updateCollapsedSummary(key);
         applyFilters();
         renderAll();
       });
@@ -346,32 +378,30 @@
     });
   }
 
+  // Accepts repeated keys for the multi-select filters (?durum=Analiz&durum=Test) plus the
+  // legacy single values the Home dashboard cards link with (e.g. ?durum=Yayinda).
   function parseQueryParams() {
     if (!window.location.search) return;
     var params = new URLSearchParams(window.location.search);
 
-    var durum = params.get("durum");
-    if (durum) {
-      var d = normalize(durum);
+    var durumlar = [];
+    params.getAll("durum").forEach(function (durum) {
+      var d = normalize(durum).replace(/\s+/g, "");
       if (d === "yayinda" || d === "yayında") {
-        state.filters.durum = "Yayında";
+        durumlar.push("Yayında");
       } else if (d === "gelistirme" || d === "geliştirme") {
-        state.filters.durum = "Geliştirme";
-      } else if (d === "testinceleme" || d === "test_inceleme" || d === "test / inceleme" || d === "test / i̇nceleme") {
-        state.filters.durum = "Test / İnceleme";
-      } else {
-        state.filters.durum = durum;
+        durumlar.push("Geliştirme");
+      } else if (d === "testinceleme" || d === "test_inceleme" || d === "test/inceleme" || d === "test/i̇nceleme") {
+        durumlar.push("Test"); // old "Test/İnceleme" dashboard links
+      } else if (durum) {
+        durumlar.push(durum);
       }
-    }
+    });
+    state.filters.durum = durumlar;
 
-    var hizmet = params.get("hizmetAlani");
-    if (hizmet) state.filters.hizmetAlani = hizmet;
-
-    var birim = params.get("birim");
-    if (birim) state.filters.birim = birim;
-
-    var kritiklik = params.get("kritiklik");
-    if (kritiklik) state.filters.kritiklik = kritiklik;
+    ["hizmetAlani", "birim", "kritiklik"].forEach(function (key) {
+      state.filters[key] = params.getAll(key).filter(Boolean);
+    });
 
     var search = params.get("search");
     if (search) {
@@ -382,54 +412,119 @@
     }
   }
 
-  function populateFilterSelects() {
-    var configs = [
-      { key: "hizmetAlani", field: "projeHizmetAlani", placeholder: "Tüm Hizmet Alanları" },
-      { key: "birim", field: "birim", placeholder: "Tüm Birimler" },
-      { key: "durum", field: "projeDurum", placeholder: "Tüm Durumlar", fixedOrder: Object.keys(cfg.statusThemes) },
-      { key: "kritiklik", field: "projeKritiklik", placeholder: "Tüm Kritiklik Seviyeleri", fixedOrder: Object.keys(cfg.criticalityThemes) }
-    ];
-
-    configs.forEach(function (c) {
-      var select = document.querySelector('[data-project-filter="' + c.key + '"]');
-      if (!select) return;
-
-      var values = c.fixedOrder
-        ? c.fixedOrder.filter(function (v) { return state.projects.some(function (p) { return p[c.field] === v; }); })
-        : distinctValues(state.projects, c.field);
-
-      if (c.key === "durum") {
-        if (state.projects.some(function (p) { return p.projeDurum === "Test" || p.projeDurum === "İnceleme"; })) {
-          if (values.indexOf("Test / İnceleme") === -1) {
-            values.push("Test / İnceleme");
-          }
-        }
-      }
-
-      var options = ['<option value="">' + c.placeholder + "</option>"]
-        .concat(values.map(function (v) { return '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + "</option>"; }));
-
-      select.innerHTML = options.join("");
-      if (state.filters[c.key]) {
-        select.value = state.filters[c.key];
-      }
-    });
+  function selectedValues(key, select) {
+    if (filterChoices[key]) return filterChoices[key].getValue(true);
+    return Array.prototype.map.call(select.selectedOptions, function (o) { return o.value; });
   }
 
-  function bindAdvancedFilterToggle() {
-    var toggle = document.querySelector("[data-advanced-filter-toggle]");
-    var panel = document.querySelector("[data-advanced-filter-panel]");
-    if (!toggle || !panel) return;
+  // Keeps a filter with many selections one line tall: only the first chip stays visible and the
+  // rest are summarised as "+N" (every value is still listed/removable in the chip row below).
+  function updateCollapsedSummary(key) {
+    var instance = filterChoices[key];
+    if (!instance) return;
+    var outer = instance.containerOuter.element;
+    var inner = instance.containerInner.element;
+    var count = state.filters[key].length;
+    outer.classList.toggle("choices--has-items", count > 0);
+    outer.classList.toggle("choices--collapsed", count > 1);
+    // Read by the CSS counter (.choices__inner::after { content: attr(data-more) }).
+    if (count > 1) {
+      inner.setAttribute("data-more", "+" + (count - 1));
+    } else {
+      inner.removeAttribute("data-more");
+    }
+  }
 
-    toggle.addEventListener("click", function () {
-      var isOpen = panel.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", String(isOpen));
-    });
+  // Options always come from the loaded projects (no hard-coded lists); Durum/Kritiklik keep their
+  // enum order from AppConfig, the rest are alphabetical. Also re-applies state.filters to the
+  // controls, which is how "Tümünü Temizle" and chip removal reset them.
+  function populateFilterSelects() {
+    var configs = [
+      { key: "hizmetAlani", placeholder: "Tüm Hizmet Alanları" },
+      { key: "birim", placeholder: "Tüm Birimler" },
+      { key: "durum", placeholder: "Tüm Durumlar", fixedOrder: Object.keys(cfg.statusThemes) },
+      { key: "kritiklik", placeholder: "Tüm Seviyeler", fixedOrder: Object.keys(cfg.criticalityThemes) }
+    ];
+
+    syncingFilterControls = true;
+    try {
+      configs.forEach(function (c) {
+        var select = document.querySelector('[data-project-filter="' + c.key + '"]');
+        if (!select) return;
+
+        var field = MULTI_FILTER_FIELDS[c.key];
+        var values = c.fixedOrder
+          ? c.fixedOrder.filter(function (v) { return state.projects.some(function (p) { return p[field] === v; }); })
+          : distinctValues(state.projects, field);
+        var selected = state.filters[c.key];
+
+        if (window.Choices && !filterChoices[c.key]) {
+          filterChoices[c.key] = new window.Choices(select, {
+            removeItemButton: true,
+            shouldSort: false,
+            allowHTML: false,
+            placeholder: true,
+            placeholderValue: c.placeholder,
+            searchPlaceholderValue: "Ara...",
+            itemSelectText: "",
+            noResultsText: "Sonuç bulunamadı",
+            noChoicesText: "Seçilecek başka değer yok",
+            position: "bottom"
+          });
+        }
+
+        var instance = filterChoices[c.key];
+        if (instance) {
+          instance.removeActiveItems();
+          instance.setChoices(values.map(function (v) {
+            return { value: v, label: v, selected: selected.indexOf(v) !== -1 };
+          }), "value", "label", true);
+          updateCollapsedSummary(c.key);
+        } else {
+          select.innerHTML = values.map(function (v) {
+            return '<option value="' + escapeHtml(v) + '"' + (selected.indexOf(v) !== -1 ? " selected" : "") + ">" + escapeHtml(v) + "</option>";
+          }).join("");
+        }
+      });
+    } finally {
+      syncingFilterControls = false;
+    }
   }
 
   function bindRetry() {
     var retryBtn = document.querySelector("[data-retry-load]");
     if (retryBtn) retryBtn.addEventListener("click", function () { window.location.reload(); });
+  }
+
+  // Builds the query string an export endpoint needs to reproduce the currently applied
+  // filters server-side (see ApplyFilter in ProjeController).
+  function buildExportQuery() {
+    var f = state.filters;
+    var params = new URLSearchParams();
+    if (f.search) params.set("search", f.search);
+    Object.keys(MULTI_FILTER_FIELDS).forEach(function (key) {
+      f[key].forEach(function (value) { params.append(key, value); });
+    });
+    if (f.sadeceAktif) params.set("sadeceAktif", "true");
+    if (f.sadeceWebAdresiOlan) params.set("sadeceWebAdresiOlan", "true");
+    return params.toString();
+  }
+
+  function bindExportButtons() {
+    var excelBtn = document.querySelector("[data-export-excel]");
+    var pdfBtn = document.querySelector("[data-export-pdf]");
+
+    if (excelBtn) {
+      excelBtn.addEventListener("click", function () {
+        window.location.href = "/Proje/ExportToExcel?" + buildExportQuery();
+      });
+    }
+
+    if (pdfBtn) {
+      pdfBtn.addEventListener("click", function () {
+        window.location.href = "/Proje/ExportToPdf?" + buildExportQuery();
+      });
+    }
   }
 
   // Below desktop width the whole filter-toolbar (search + selects, including the advanced
@@ -455,11 +550,11 @@
     renderTableHead();
     populateFilterSelects();
     bindSearchAndFilters();
-    bindAdvancedFilterToggle();
     bindFilterToolbarToggle();
     bindRetry();
+    bindExportButtons();
     window.Pagination.bindEvents(state, renderAll);
-    window.Filters.bindClearAll(state, renderAll, populateFilterSelects);
+    window.Filters.bindChipRemoval(state, renderAll, populateFilterSelects);
 
     applyFilters();
     renderAll();
@@ -469,6 +564,7 @@
     state: state,
     init: init,
     renderAll: renderAll,
-    applyFilters: applyFilters
+    applyFilters: applyFilters,
+    multiFilterKeys: Object.keys(MULTI_FILTER_FIELDS)
   };
 })(window);

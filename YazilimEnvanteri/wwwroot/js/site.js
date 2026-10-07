@@ -3,41 +3,19 @@
 
   var cfg = window.AppConfig;
 
-  function renderMasthead() {
-    var titleEl = document.querySelector("[data-masthead-title]");
-    var subtitleEl = document.querySelector("[data-masthead-subtitle]");
-    if (titleEl) titleEl.textContent = cfg.branding.applicationName;
-    if (subtitleEl) subtitleEl.textContent = cfg.branding.subtitle;
-
-    var rightTop = document.querySelector("[data-masthead-right-top]");
-    if (rightTop) {
-      rightTop.innerHTML = cfg.branding.masthead.rightTop.map(function (t) { return "<span>" + t + "</span>"; }).join("");
-    }
-
-    var rightBottomLine = document.querySelector("[data-masthead-right-bottom-line]");
-    if (rightBottomLine) rightBottomLine.textContent = cfg.branding.masthead.rightBottomLine;
-
-    var rightBottomAccent = document.querySelector("[data-masthead-right-bottom-accent]");
-    if (rightBottomAccent) rightBottomAccent.textContent = cfg.branding.masthead.rightBottomAccent;
-
-    var tagline = document.querySelector("[data-sidebar-tagline]");
-    if (tagline) {
-      tagline.innerHTML = cfg.branding.tagline.map(function (t) { return "<span>" + t + "</span>"; }).join("");
-    }
-  }
-
   function renderSidebarNav() {
     var nav = document.querySelector("[data-sidebar-nav]");
     if (!nav) return;
 
     var activeKey = document.body.getAttribute("data-nav-key");
 
-    nav.innerHTML = cfg.navigation.map(function (item) {
+    // Unfinished sections stay in AppConfig.navigation (enabled: false) but aren't shown, so the
+    // menu never offers dead links.
+    nav.innerHTML = cfg.navigation.filter(function (item) { return item.enabled; }).map(function (item) {
       var isActive = item.key === activeKey;
       var classes = "sidebar-link" + (isActive ? " active" : "");
-      var disabledAttrs = item.enabled ? "" : ' aria-disabled="true" tabindex="-1"';
       return (
-        '<a class="' + classes + '" href="' + item.href + '"' + disabledAttrs + (isActive ? ' aria-current="page"' : "") + ">" +
+        '<a class="' + classes + '" href="' + item.href + '"' + (isActive ? ' aria-current="page"' : "") + ">" +
         cfg.icon(item.icon, 18) +
         '<span class="sidebar-link-label">' + item.label + "</span></a>"
       );
@@ -49,11 +27,8 @@
     var initialsEls = document.querySelectorAll("[data-user-initials]");
     initialsEls.forEach(function (el) { el.textContent = user.basHarfler; });
 
-    var nameEl = document.querySelector("[data-user-name]");
-    if (nameEl) nameEl.textContent = user.adSoyad;
-
-    var roleEl = document.querySelector("[data-user-role]");
-    if (roleEl) roleEl.textContent = user.rol;
+    document.querySelectorAll("[data-user-name]").forEach(function (el) { el.textContent = user.adSoyad; });
+    document.querySelectorAll("[data-user-role]").forEach(function (el) { el.textContent = user.rol; });
   }
 
   function renderStaticIcons() {
@@ -64,11 +39,39 @@
     });
   }
 
+  // Create/Edit finish with a full page reload (see project-form.js reloadWithFlag) rather than
+  // a client-side redirect, so the success toast is surfaced here via a one-shot querystring flag
+  // instead of TempData - there's no server-rendered redirect step in that AJAX-modal flow to hang
+  // TempData off of. The flag is stripped immediately so a manual refresh won't re-show the toast.
+  function showPendingToast() {
+    var params = new URLSearchParams(window.location.search);
+    var toastMessage = null;
+
+    if (params.get("created") === "1") {
+      toastMessage = "Projeniz başarıyla oluşturuldu.";
+    } else if (params.get("updated") === "1") {
+      toastMessage = "Projeniz başarıyla güncellendi.";
+    } else if (params.get("deleted") === "1") {
+      toastMessage = "Proje silindi.";
+    }
+
+    if (!toastMessage) return;
+
+    params.delete("created");
+    params.delete("updated");
+    params.delete("deleted");
+    var query = params.toString();
+    var newUrl = window.location.pathname + (query ? "?" + query : "") + window.location.hash;
+    window.history.replaceState({}, "", newUrl);
+
+    if (window.Toast) window.Toast.show(toastMessage, "success");
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
-    renderMasthead();
     renderSidebarNav();
     renderUserBlock();
     renderStaticIcons();
+    showPendingToast();
 
     window.Sidebar.init();
     window.Dropdown.init();
@@ -82,6 +85,7 @@
 
     if (page === "project-detail") {
       window.ProjectDetail.init();
+      window.ProjectForm.init();
     }
   });
 })(window, document);

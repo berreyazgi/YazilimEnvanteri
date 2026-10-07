@@ -1,81 +1,37 @@
 using Dapper;
-using YazilimEnvanteri.Data.Dapper;
-using YazilimEnvanteri.Models.Entities;
-using YazilimEnvanteri.Services.Interfaces;
+using Npgsql;
+using YazilimEnvanteri.Models.ViewModels;
 
 namespace YazilimEnvanteri.Services.Implementations
 {
-    public class YazilimUzmaniService : IYazilimUzmaniService
+    public class YazilimUzmaniService(NpgsqlDataSource dataSource)
     {
-        private readonly IDbConnectionFactory _connectionFactory;
-
-        public YazilimUzmaniService(IDbConnectionFactory connectionFactory)
-        {
-            _connectionFactory = connectionFactory;
-        }
-
-        public async Task<IReadOnlyList<YazilimUzmaniEntity>> GetAllAsync()
-        {
-            const string sql = "SELECT * FROM \"YazilimUzmanlari\" ORDER BY \"Id\";";
-
-            using var connection = _connectionFactory.CreateConnection();
-            var result = await connection.QueryAsync<YazilimUzmaniEntity>(sql);
-            return result.AsList();
-        }
-
-        public async Task<YazilimUzmaniEntity?> GetByIdAsync(int id)
-        {
-            const string sql = "SELECT * FROM \"YazilimUzmanlari\" WHERE \"Id\" = @Id;";
-
-            using var connection = _connectionFactory.CreateConnection();
-            return await connection.QuerySingleOrDefaultAsync<YazilimUzmaniEntity>(sql, new { Id = id });
-        }
-
-        public async Task<int> CreateAsync(YazilimUzmaniEntity entity)
+        // Joined with Personeller/Birimler so callers get the specialist's name, e-mail etc.
+        // PersonelId is NOT NULL with an FK, so the Personeller join is always satisfied.
+        public async Task<IReadOnlyList<YazilimUzmaniListItemViewModel>> GetListAsync()
         {
             const string sql = """
-                INSERT INTO "YazilimUzmanlari" ("ProjeId", "Birim", "KullanıcıAdi", "Ad", "Soyad", "Gorev", "Email", "Telefon", "SorumluFirma", "OlusturmaTarihi")
-                VALUES (@ProjeId, @Birim, @KullanıcıAdi, @Ad, @Soyad, @Gorev, @Email, @Telefon, @SorumluFirma, @OlusturmaTarihi)
-                RETURNING "Id";
+                SELECT
+                    y."Id"              AS "Id",
+                    y."PersonelId"      AS "PersonelId",
+                    y."ProjeId"         AS "ProjeId",
+                    y."BirimId"         AS "BirimId",
+                    b."Birim"           AS "Birim",
+                    y."SorumluFirma"    AS "SorumluFirma",
+                    per."KullanıcıAdi"  AS "KullaniciAdi",
+                    per."Ad"            AS "Ad",
+                    per."Soyad"         AS "Soyad",
+                    per."Email"         AS "Email",
+                    per."Gorev"         AS "Gorev",
+                    per."Telefon"       AS "Telefon"
+                FROM "YazilimUzmanlari" y
+                INNER JOIN "Personeller" per ON per."Id" = y."PersonelId"
+                LEFT JOIN "Birimler" b ON b."Id" = y."BirimId"
+                ORDER BY per."Ad", per."Soyad";
                 """;
 
-            entity.OlusturmaTarihi = DateTime.UtcNow;
-
-            using var connection = _connectionFactory.CreateConnection();
-            return await connection.QuerySingleAsync<int>(sql, entity);
-        }
-
-        public async Task<bool> UpdateAsync(YazilimUzmaniEntity entity)
-        {
-            const string sql = """
-                UPDATE "YazilimUzmanlari"
-                SET "ProjeId" = @ProjeId,
-                    "Birim" = @Birim,
-                    "KullanıcıAdi" = @KullanıcıAdi,
-                    "Ad" = @Ad,
-                    "Soyad" = @Soyad,
-                    "Gorev" = @Gorev,
-                    "Email" = @Email,
-                    "Telefon" = @Telefon,
-                    "SorumluFirma" = @SorumluFirma,
-                    "GuncellemeTarihi" = @GuncellemeTarihi
-                WHERE "Id" = @Id;
-                """;
-
-            entity.GuncellemeTarihi = DateTime.UtcNow;
-
-            using var connection = _connectionFactory.CreateConnection();
-            var affected = await connection.ExecuteAsync(sql, entity);
-            return affected > 0;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            const string sql = "DELETE FROM \"YazilimUzmanlari\" WHERE \"Id\" = @Id;";
-
-            using var connection = _connectionFactory.CreateConnection();
-            var affected = await connection.ExecuteAsync(sql, new { Id = id });
-            return affected > 0;
+            using var connection = dataSource.CreateConnection();
+            return (await connection.QueryAsync<YazilimUzmaniListItemViewModel>(sql)).AsList();
         }
     }
 }

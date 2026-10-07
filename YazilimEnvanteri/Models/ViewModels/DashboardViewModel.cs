@@ -5,6 +5,6 @@ namespace YazilimEnvanteri.Models.ViewModels
         public int ToplamProje { get; set; }
         public int YayindakiProje { get; set; }
         public int GelistirmedekiProje { get; set; }
-        public int TestIncelemeProje { get; set; }
+        public int TestProje { get; set; }
     }
 }

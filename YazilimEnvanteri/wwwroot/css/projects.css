@@ -1,16 +1,270 @@
 /* ==========================================================================
-   Filter toolbar
+   Filter toolbar - one flex row that wraps by available width only. Every field has an
+   explicit flex-basis, so its size never depends on what is selected in it and filter
+   changes can't make the row (or the page header above it) reflow.
    ========================================================================== */
 .filter-toolbar {
+  --filter-control-height: 38px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
   padding: 16px;
   margin-bottom: 12px;
-  display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(140px, 1fr)) auto;
-  gap: 12px;
-  align-items: end;
 }
 
-.filter-field { display: flex; flex-direction: column; }
+.filter-field { display: flex; flex-direction: column; flex: 1 1 150px; min-width: 0; }
+.filter-field--search { flex: 1.2 1 170px; }
+
+/* Birim values are long unit names ("... Dairesi Başkanlığı - ... Şube Müdürlüğü"), so this
+   field gets the largest share of the row, capped so it can't crowd out the others. */
+.filter-field--birim { flex: 2 1 240px; max-width: 440px; }
+
+/* "Sadece Aktif Projeler" + "Web Adresi Olanlar" checkboxes: right-aligned, on the first row when it fits. */
+.filter-actions { flex: 0 0 auto; flex-direction: row; align-items: center; gap: 16px; margin-left: auto; height: var(--filter-control-height); }
+.filter-actions .filter-checkbox-label { margin: 0; white-space: nowrap; }
+
+/* ==========================================================================
+   Multi-select filters (Choices.js) - restyled to match .field-select instead
+   of the library's default look.
+   ========================================================================== */
+.filter-toolbar .choices { margin-bottom: 0; font-size: 13.5px; }
+
+/* Always exactly one line tall - open or closed, with or without selections. (While the
+   dropdown was open the chips used to wrap onto a second line, growing the whole toolbar
+   and shrinking it again on close.) */
+.filter-toolbar .choices__inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  height: var(--filter-control-height);
+  min-height: 0;
+  padding: 3px 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  font-size: 13.5px;
+}
+
+.filter-toolbar .choices.is-focused .choices__inner,
+.filter-toolbar .choices.is-open .choices__inner {
+  border-color: var(--color-primary);
+  border-radius: var(--radius-small);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.filter-toolbar .choices__list--multiple { display: contents; }
+
+/* Choices renders a chip as a bare text node + the remove button, so the chip itself is the
+   ellipsis box and the button is pinned to its right edge (it can never be pushed out of view). */
+.filter-toolbar .choices__list--multiple .choices__item {
+  position: relative;
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  margin: 2px 4px 2px 0;
+  padding: 3px 28px 3px 10px;
+  line-height: 20px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 500;
+  word-break: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-toolbar .choices__list--multiple .choices__item.is-highlighted {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Remove "x": primary-coloured instead of the library's white icon, and a 20px hit area. */
+.filter-toolbar .choices[data-type*="select-multiple"] .choices__button {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  background-size: 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 21 21'%3E%3Cg fill='%231668d8' fill-rule='evenodd'%3E%3Cpath d='M2.592.044l18.364 18.364-2.548 2.548L.044 2.592z'/%3E%3Cpath d='M0 18.364L18.364 0l2.548 2.548L2.548 20.912z'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: 1;
+}
+
+.filter-toolbar .choices__list--multiple .choices__item.is-highlighted .choices__button { background-color: rgba(255, 255, 255, 0.85); }
+
+.filter-toolbar .choices__input {
+  flex: 1 1 60px;
+  min-width: 60px;
+  margin: 0;
+  padding: 4px 2px;
+  background: transparent;
+  font-size: 13.5px;
+  color: var(--color-text-primary);
+}
+
+.filter-toolbar .choices__input::placeholder { color: var(--color-text-primary); opacity: 1; }
+
+/* Many selections: only the first chip shows, plus a "+N" counter (the chip row below the
+   toolbar still lists every value). Applies open or closed so the height never changes. */
+.filter-toolbar .choices--collapsed .choices__list--multiple .choices__item:nth-child(n+2) { display: none; }
+
+.filter-toolbar .choices--collapsed .choices__inner::after {
+  content: attr(data-more);
+  order: 2;
+  flex-shrink: 0;
+  margin-left: 2px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-page-background);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* With selections the search input is a caret while closed and a short search box (shrinking
+   the chip rather than wrapping) while open; its placeholder only shows when nothing is
+   selected. Choices sets an inline width/min-width from the placeholder, hence !important. */
+.filter-toolbar .choices--has-items .choices__input--cloned {
+  order: 3;
+  flex: 1 0 48px;
+  width: 48px !important;
+  min-width: 48px !important;
+}
+
+.filter-toolbar .choices--has-items:not(.is-open) .choices__input--cloned {
+  flex: 0 0 1ch;
+  width: 1ch !important;
+  min-width: 1ch !important;
+  padding: 0;
+}
+
+.filter-toolbar .choices--has-items .choices__input--cloned::placeholder { color: transparent; }
+
+.filter-toolbar .choices__list--dropdown,
+.filter-toolbar .choices__list[aria-expanded] {
+  z-index: var(--z-dropdown);
+  margin-top: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  word-break: normal;
+}
+
+/* The Birim list opens wider than its field so a unit name reads on one or two lines instead
+   of one word per line. */
+.filter-field--birim .choices__list--dropdown,
+.filter-field--birim .choices__list[aria-expanded] {
+  width: max-content;
+  min-width: 100%;
+  max-width: min(520px, calc(100vw - 32px));
+}
+
+.filter-toolbar .choices__list--dropdown .choices__list,
+.filter-toolbar .choices__list[aria-expanded] .choices__list {
+  max-height: 260px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-toolbar .choices__list--dropdown .choices__item,
+.filter-toolbar .choices__list[aria-expanded] .choices__item {
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.filter-toolbar .choices__list--dropdown .choices__item--selectable.is-highlighted,
+.filter-toolbar .choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
+  background: var(--color-primary-light);
+}
+
+.filter-toolbar .choices__list--dropdown .choices__input {
+  width: 100%;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   "Yeni Proje" / "Projeyi Düzenle" form dropdowns (Choices.js single selects, see
+   project-form.js enhanceSelect) - same look as the filter toolbar's multi-selects.
+   ========================================================================== */
+.modal { --form-control-height: 38px; }
+.modal .choices { margin-bottom: 0; font-size: 13.5px; }
+
+.modal .choices__inner {
+  display: flex;
+  align-items: center;
+  min-height: var(--form-control-height);
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  font-size: 13.5px;
+}
+
+.modal .choices.is-focused .choices__inner,
+.modal .choices.is-open .choices__inner {
+  border-color: var(--color-primary);
+  border-radius: var(--radius-small);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* Long Birim / Teknoloji labels: one line with an ellipsis in the closed field. */
+.modal .choices__list--single {
+  min-width: 0;
+  padding: 0 20px 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal .choices__list--dropdown,
+.modal .choices__list[aria-expanded] {
+  z-index: var(--z-dropdown);
+  margin-top: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+  word-break: normal;
+}
+
+.modal .choices__list--dropdown .choices__list,
+.modal .choices__list[aria-expanded] .choices__list {
+  max-height: 260px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal .choices__list--dropdown .choices__item,
+.modal .choices__list[aria-expanded] .choices__item {
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.modal .choices__list--dropdown .choices__item--selectable.is-highlighted,
+.modal .choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
+  background: var(--color-primary-light);
+}
+
+.modal .choices__list--dropdown .choices__input {
+  width: 100%;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
 
 .filter-checkbox-label {
   display: flex;
@@ -19,16 +273,8 @@
   font-weight: 500;
 }
 
-.advanced-filter-panel {
-  grid-column: 1 / -1;
-  display: none;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 12px;
-}
-
-.advanced-filter-panel.open { display: grid; }
-
-/* Collapsed behind "Filtreler" below desktop width - see the max-width:1199px block below. */
+/* Only shown on touch tablets/phones, where the toolbar collapses behind it (see the touch
+   media queries at the end of this file). */
 .filter-toolbar-toggle {
   display: none;
   width: 100%;
@@ -48,49 +294,61 @@
   margin-bottom: 18px;
 }
 
-.filter-chips-clear {
-  background: none;
-  border: none;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--color-danger);
-  padding: 4px 6px;
-}
+/* Chips below the toolbar: long Birim names wrap instead of widening the page. */
+.filter-chips .filter-chip { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 
 /* ==========================================================================
    Project table
+
+   Fixed layout: the table is always exactly as wide as its card and every column gets a
+   deterministic width - fixed px for the badge/action columns (sized to their widest
+   content), percentages for the text columns and the remainder for Birim. Long text is
+   clamped (full value in the cell's title tooltip) instead of stretching the table.
+   Narrower cards are handled by the container query below, based on the card's own width
+   rather than the viewport.
    ========================================================================== */
 .table-scroll {
   overflow-x: auto;
+  container-type: inline-size;
 }
 
 .project-table {
   width: 100%;
-  min-width: 900px;
-  font-size: 13.5px;
+  table-layout: fixed;
+  font-size: 13px;
 }
+
+.project-table [data-col="projeKodu"] { width: 8%; }
+.project-table [data-col="projeAdi"] { width: 12%; }
+.project-table [data-col="projeHizmetAlani"] { width: 9%; }
+.project-table [data-col="yazilimUzmaniAdSoyad"] { width: 9%; }
+.project-table [data-col="sunucu"] { width: 11%; }
+.project-table [data-col="projeDurum"] { width: 128px; }
+.project-table [data-col="projeKritiklik"] { width: 108px; }
+.project-table [data-col="actions"] { width: 128px; }
 
 .project-table thead th {
   text-align: left;
-  padding: 12px 16px;
-  font-size: 12px;
+  padding: 10px;
+  font-size: 11.5px;
   font-weight: 700;
+  line-height: 1.35;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--color-text-secondary);
   background: var(--color-page-background);
   border-bottom: 1px solid var(--color-border);
-  white-space: nowrap;
+  vertical-align: bottom;
 }
 
 .project-table th.sortable { cursor: pointer; user-select: none; }
 .project-table th.sortable:hover { color: var(--color-text-primary); }
 
-.sort-indicator { display: inline-block; margin-left: 4px; opacity: 0.6; }
+.sort-indicator { display: inline-block; margin-left: 4px; opacity: 0.6; vertical-align: middle; }
 .sort-indicator.active { opacity: 1; color: var(--color-primary); }
 
 .project-table tbody td {
-  padding: 14px 16px;
+  padding: 12px 10px;
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-primary);
   vertical-align: middle;
@@ -100,19 +358,39 @@
 .project-table tbody tr:last-child td { border-bottom: none; }
 
 .cell-title { font-weight: 600; }
-.cell-secondary { color: var(--color-text-secondary); font-size: 12.5px; }
+.cell-secondary { color: var(--color-text-secondary); font-size: 12px; }
 .cell-muted { color: var(--color-text-muted); font-style: italic; }
 
-/* Only revealed at tablet widths, where the Proje Kodu / Hizmet Alanı columns are hidden and
-   folded into the Proje Adı cell instead - see the max-width:1199px block below. */
-.cell-meta-compact {
+/* Text cells: two lines (three for Birim) then an ellipsis; codes, servers and URLs are
+   single tokens, so they get a one-line ellipsis instead. */
+.project-table .cell-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.project-table [data-col="birim"] .cell-clamp { -webkit-line-clamp: 3; }
+
+.project-table [data-col="projeKodu"] .cell-clamp,
+.project-table [data-col="sunucu"] .cell-clamp,
+.project-table .cell-meta-compact {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Only revealed when the card is too narrow for every column - the Proje Kodu / Hizmet Alanı
+   columns are then hidden and folded into the Proje Adı cell instead. */
+.project-table .cell-meta-compact {
   display: none;
   color: var(--color-text-secondary);
   font-size: 12px;
   margin-top: 2px;
 }
 
-.row-actions { display: flex; align-items: center; gap: 8px; position: relative; }
+.row-actions { display: flex; align-items: center; gap: 6px; position: relative; }
 
 .row-menu-trigger {
   background: none;
@@ -120,6 +398,7 @@
   border-radius: var(--radius-small);
   width: 30px;
   height: 30px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -128,10 +407,12 @@
 
 .row-menu-trigger:hover { background: var(--color-page-background); }
 
+/* Positioned against the viewport by dropdown.js (positionFloatingPanel) so the table's scroll
+   container can't clip it and it never renders off-screen. */
 .row-menu-panel {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
+  position: fixed;
+  left: 0;
+  top: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-medium);
@@ -157,10 +438,28 @@
 }
 
 .row-menu-panel button:hover, .row-menu-panel a:hover { background: var(--color-page-background); }
+.row-menu-panel .row-menu-danger { color: var(--color-danger); }
+
+/* Card narrower than the full nine columns need (desktop window below ~1270px, touch
+   tablets): Proje Kodu and Hizmet Alanı fold into the Proje Adı cell (.cell-meta-compact),
+   every other column stays. Below the min-width the card scrolls horizontally rather than
+   dropping columns. */
+@container (max-width: 999px) {
+  .project-table { min-width: 880px; }
+
+  .project-table [data-col="projeKodu"],
+  .project-table [data-col="projeHizmetAlani"] { display: none; }
+
+  .project-table .cell-meta-compact { display: block; }
+
+  .project-table [data-col="projeAdi"] { width: 17%; }
+  .project-table [data-col="yazilimUzmaniAdSoyad"] { width: 11%; }
+  .project-table [data-col="sunucu"] { width: 13%; }
+}
 
 /* ==========================================================================
    Mobile project cards - rendered from the same pageItems as the desktop
-   table (see projects.js renderMobileCards); hidden above mobile widths.
+   table (see projects.js renderMobileCards); only shown on touch phones.
    ========================================================================== */
 .project-mobile-list {
   display: none;
@@ -243,38 +542,44 @@
 .pagination-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ==========================================================================
-   Responsive
+   Touch devices. Capability-based (see AppConfig.media and site.css) - a narrow desktop
+   window keeps the inline toolbar and the table; only the components above adapt to it.
    ========================================================================== */
 
-/* Tablet (768px-1199px): sidebar goes off-canvas (see site.css), filters collapse behind a
-   toggle, and the table switches to a condensed column set instead of horizontal scrolling. */
-@media (max-width: 1199px) {
+/* Touch tablets + phones: the filter toolbar collapses behind the "Filtreler" toggle. */
+@media (hover: none) and (pointer: coarse) and (max-width: 1199px) {
   .filter-toolbar-toggle { display: flex; }
 
-  .filter-toolbar { display: none; grid-template-columns: repeat(2, 1fr); }
-  .filter-toolbar.open { display: grid; }
-
-  /* Proje Kodu and Hizmet Alanı fold into the Proje Adı cell (see .cell-meta-compact); Yazılım
-     Uzmanı and Sunucu/Web Adresi are dropped entirely to fit a tablet-width viewport without
-     horizontal scrolling. Same table markup, same data - only visibility changes. */
-  [data-col="projeKodu"],
-  [data-col="projeHizmetAlani"],
-  [data-col="yazilimUzmaniAdSoyad"],
-  [data-col="sunucu"] {
-    display: none;
-  }
-
-  .cell-meta-compact { display: block; }
-
-  .project-table { min-width: 0; width: 100%; }
+  .filter-toolbar { display: none; }
+  .filter-toolbar.open { display: flex; }
 }
 
-/* Mobile (<768px): the desktop/tablet table is replaced entirely by project-mobile-list cards. */
-@media (max-width: 767px) {
+/* Touch phones: the table is replaced entirely by project-mobile-list cards. */
+@media (hover: none) and (pointer: coarse) and (max-width: 767px) {
   .table-scroll { display: none !important; }
   .project-mobile-list { display: flex; padding: 0; }
 
-  .filter-toolbar { grid-template-columns: 1fr; }
+  .filter-toolbar { --filter-control-height: 46px; }
+  .filter-field,
+  .filter-field--birim { flex-basis: 100%; max-width: none; }
+  .filter-actions { flex: 1 1 100%; flex-wrap: wrap; height: auto; }
+
+  /* Touch-friendly remove buttons and a dropdown that stays within the card width. */
+  .filter-toolbar .choices[data-type*="select-multiple"] .choices__button { width: 26px; height: 26px; background-size: 9px; right: 3px; }
+  .filter-toolbar .choices__list--multiple .choices__item { padding: 6px 34px 6px 12px; }
+  .filter-field--birim .choices__list--dropdown,
+  .filter-field--birim .choices__list[aria-expanded] { width: 100%; max-width: none; }
+  .filter-toolbar .choices__list--dropdown .choices__list,
+  .filter-toolbar .choices__list[aria-expanded] .choices__list { max-height: 50vh; }
+
+  /* Form dropdowns: same touch-sized controls and viewport-capped list as the filters. */
+  .modal { --form-control-height: 46px; }
+  /* .filter-field's 150px flex-basis is meant for the toolbar row; in the column slide it became height. */
+  .modal-slide .filter-field { flex: 0 0 auto; }
+  .modal .choices__list--dropdown .choices__list,
+  .modal .choices__list[aria-expanded] .choices__list { max-height: 40vh; }
+  .modal .choices__list--dropdown .choices__item,
+  .modal .choices__list[aria-expanded] .choices__item { padding: 12px 14px; }
 
   .section-header-actions {
     display: grid;
@@ -283,7 +588,6 @@
     width: 100%;
   }
 
-  .section-header-actions > *:first-child { grid-column: 1 / -1; }
   .section-header-actions .app-button { justify-content: center; }
 
   .pagination-bar { flex-direction: column; align-items: stretch; text-align: center; }

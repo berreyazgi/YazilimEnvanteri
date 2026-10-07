@@ -34,8 +34,8 @@ namespace YazilimEnvanteri.Services.Implementations
         public async Task<int> CreateAsync(PersonelEntity entity)
         {
             const string sql = """
-                INSERT INTO "Personeller" ("BirimId", "Ad", "Soyad", "Email", "Telefon", "Gorev", "SorumluPersonel", "OlusturmaTarihi")
-                VALUES (@BirimId, @Ad, @Soyad, @Email, @Telefon, @Gorev, @SorumluPersonel, @OlusturmaTarihi)
+                INSERT INTO "Personeller" ("BirimId", "KullanıcıAdi", "Ad", "Soyad", "Email", "Telefon", "Gorev", "SorumluPersonel", "OlusturmaTarihi")
+                VALUES (@BirimId, @KullanıcıAdi, @Ad, @Soyad, @Email, @Telefon, @Gorev, @SorumluPersonel, @OlusturmaTarihi)
                 RETURNING "Id";
                 """;
 
@@ -50,6 +50,7 @@ namespace YazilimEnvanteri.Services.Implementations
             const string sql = """
                 UPDATE "Personeller"
                 SET "BirimId" = @BirimId,
+                    "KullanıcıAdi" = @KullanıcıAdi,
                     "Ad" = @Ad,
                     "Soyad" = @Soyad,
                     "Email" = @Email,

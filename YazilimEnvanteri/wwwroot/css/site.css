@@ -14,7 +14,6 @@
 
   --color-page-background: #f2f7fc;
   --color-surface: #ffffff;
-  --color-masthead: #eef3f9;
 
   --color-text-primary: #14213d;
   --color-text-secondary: #65758b;
@@ -48,8 +47,8 @@
 
   --font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 
-  --z-header: 40;
   --z-sidebar: 30;
+  --z-header: 40;
   --z-dropdown: 50;
   --z-overlay: 60;
 }
@@ -86,23 +85,41 @@ table { border-collapse: collapse; }
 }
 
 /* ==========================================================================
-   Global header (masthead)
+   Toast notifications
    ========================================================================== */
-.masthead {
-  background: var(--color-masthead);
+.toast-container {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: var(--z-overlay);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 28px;
-  gap: 24px;
-  flex-wrap: wrap;
-  position: sticky;
-  top: 0;
-  z-index: var(--z-header);
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
 }
 
-.masthead-left { display: flex; align-items: center; gap: 12px; }
+.toast {
+  min-width: 260px;
+  max-width: 360px;
+  padding: 14px 18px;
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
 
+.toast.open { opacity: 1; transform: translateY(0); }
+
+.toast--success { background: var(--color-success); }
+.toast--danger { background: var(--color-danger); }
+
+/* ==========================================================================
+   Mobile nav toggle (opens the off-canvas sidebar on touch devices; hidden on desktop)
+   ========================================================================== */
 .menu-toggle {
   display: none;
   align-items: center;
@@ -116,56 +133,49 @@ table { border-collapse: collapse; }
   flex-shrink: 0;
 }
 
-.masthead-logo { flex-shrink: 0; }
+/* ==========================================================================
+   Mobile header (touch devices, where the sidebar is an off-canvas drawer):
+   [menu] Yazılım Envanteri [account] - see Views/Shared/_MobileHeader.cshtml
+   ========================================================================== */
+.mobile-header {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-small);
+}
 
-.masthead-title {
-  margin: 0;
-  font-size: 19px;
+.mobile-header-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
   font-weight: 700;
   color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.masthead-subtitle {
-  margin: 2px 0 0;
-  font-size: 12.5px;
-  color: var(--color-text-secondary);
-}
+.mobile-header-account { flex-shrink: 0; }
+.mobile-header-account .user-block { padding: 4px; }
+.mobile-header-user-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.masthead-right { display: flex; align-items: center; gap: 20px; }
-
-.masthead-block {
+.dropdown-user {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 12.5px;
-  color: var(--color-text-secondary);
-  text-align: right;
-  line-height: 1.4;
+  padding: 8px 10px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.masthead-accent {
-  position: relative;
-  color: var(--color-text-primary);
-  font-weight: 600;
-  padding-bottom: 4px;
-}
-
-.masthead-accent::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  width: 60%;
-  background: var(--color-primary);
-  border-radius: 2px;
-}
-
-.masthead-divider {
-  width: 1px;
-  align-self: stretch;
-  background: var(--color-border);
-}
+.dropdown-panel .dropdown-item--muted { opacity: 0.6; cursor: default; }
+.dropdown-panel .dropdown-item--muted:hover { background: none; }
 
 /* ==========================================================================
    App shell
@@ -173,7 +183,7 @@ table { border-collapse: collapse; }
 .app-shell {
   display: flex;
   align-items: flex-start;
-  min-height: calc(100vh - 68px);
+  min-height: 100vh;
   position: relative;
 }
 
@@ -194,12 +204,12 @@ table { border-collapse: collapse; }
   width: var(--sidebar-width);
   flex-shrink: 0;
   background: var(--color-sidebar);
-  min-height: calc(100vh - 68px);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   padding: 18px 12px;
   position: sticky;
-  top: 68px;
+  top: 0;
   align-self: flex-start;
   z-index: var(--z-sidebar);
 }
@@ -234,17 +244,6 @@ table { border-collapse: collapse; }
   opacity: 0.55;
 }
 
-.sidebar-tagline {
-  margin-top: auto;
-  padding: 16px 12px 4px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 6px;
-  font-size: 11.5px;
-  color: var(--color-sidebar-text);
-  opacity: 0.7;
-  line-height: 1.5;
-}
 
 /* ==========================================================================
    Content
@@ -252,8 +251,30 @@ table { border-collapse: collapse; }
 .content {
   flex: 1;
   min-width: 0;
-  padding: 24px 28px 48px;
+  padding: 24px 24px 48px;
 }
+
+/* ==========================================================================
+   Section header - page title on the left, page actions on the right
+   (Ana Sayfa, Projelerim, Nasıl Kullanılır?)
+   ========================================================================== */
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.section-header > :first-child { flex: 1 1 320px; min-width: 0; }
+
+.section-header-title { margin: 0; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
+.section-header-subtitle { margin: 4px 0 0; font-size: 13px; color: var(--color-text-secondary); max-width: 560px; }
+
+/* Static buttons only - its size depends on the window width alone, never on page state
+   (filters, chips, Choices.js live outside it). Wraps only when the window is too narrow. */
+.section-header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
 
 /* ==========================================================================
    Application toolbar
@@ -447,6 +468,7 @@ table { border-collapse: collapse; }
 
 .app-button--sm { padding: 6px 10px; font-size: 12.5px; }
 .app-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.app-button--outline:disabled:hover { background: var(--color-surface); }
 
 /* ==========================================================================
    Status badges
@@ -536,6 +558,55 @@ table { border-collapse: collapse; }
   outline-offset: 1px;
 }
 
+.field-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.4; }
+
+/* ==========================================================================
+   Nasıl Kullanılır? (Views/Home/NasilKullanilir.cshtml)
+   ========================================================================== */
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.help-card { padding: 20px; }
+
+.help-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.help-card-title svg { color: var(--color-primary); flex-shrink: 0; }
+
+.help-list {
+  list-style: disc;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.help-list strong { color: var(--color-text-primary); }
+
+.help-examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+.help-examples code {
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
 /* ==========================================================================
    Empty / loading / error states
    ========================================================================== */
@@ -613,6 +684,10 @@ table { border-collapse: collapse; }
   overflow: hidden;
 }
 
+/* The <form> sits between .modal and .modal-body; without this it never shrinks, so the body
+   got clipped by .modal's overflow:hidden instead of scrolling. */
+.modal > form { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -641,6 +716,8 @@ table { border-collapse: collapse; }
 .modal-body {
   padding: 20px 22px;
   overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
@@ -659,6 +736,10 @@ table { border-collapse: collapse; }
   color: var(--color-text-primary);
   margin-top: 22px;
 }
+
+/* "Proje Aktif" / "Proje Askıda" - same-styled radio pair sharing one row. */
+.modal-field-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 22px; }
+.modal-field-toggle .modal-field-checkbox { margin-top: 0; }
 
 .modal-error {
   grid-column: 1 / -1;
@@ -702,14 +783,24 @@ table { border-collapse: collapse; }
 
 /* ==========================================================================
    Responsive
+
+   The app switches to its touch layout by input capability, never by viewport width alone:
+   a narrow desktop window keeps the permanent sidebar and desktop structure, and individual
+   components (filter toolbar, table, help grid, modal) adapt to the width they get. The query
+   strings are mirrored in AppConfig.media for JS.
    ========================================================================== */
 
-/* Tablet + mobile (<1200px): the permanently-visible desktop sidebar becomes an off-canvas
-   drawer opened via the hamburger button, matching the reference's tablet/mobile behavior. */
-@media (max-width: 1199px) {
-  .menu-toggle { display: inline-flex; }
+/* Narrow desktop windows: the modal form drops to one column (still the desktop form). */
+@media (max-width: 600px) {
+  .modal-body { grid-template-columns: 1fr; }
+  .modal-field-checkbox, .modal-field-toggle { margin-top: 0; }
+}
 
-  .masthead-right { display: none; }
+/* Touch tablets + phones (AppConfig.media.touchCompact): the permanently-visible sidebar becomes
+   an off-canvas drawer opened via the hamburger button in the mobile header. */
+@media (hover: none) and (pointer: coarse) and (max-width: 1199px) {
+  .menu-toggle { display: inline-flex; }
+  .mobile-header { display: flex; }
 
   .content { padding: 20px 24px 40px; }
 
@@ -727,14 +818,14 @@ table { border-collapse: collapse; }
   .sidebar.open { transform: translateX(0); }
 
   .sidebar-link span.sidebar-link-label { display: inline; }
-  .sidebar-tagline { display: flex; }
 }
 
-@media (max-width: 767px) {
-  .masthead-title { font-size: 16px; }
-  .masthead-subtitle { display: none; }
-
+/* Touch phones (AppConfig.media.phone). */
+@media (hover: none) and (pointer: coarse) and (max-width: 767px) {
   .sidebar { width: 240px; }
+
+  .mobile-header { padding: 8px 12px; }
+  .mobile-header-user-name { display: none; }
 
   .content { padding: 16px 16px 32px; }
 
@@ -747,8 +838,7 @@ table { border-collapse: collapse; }
   .app-topbar-title { display: none; }
   .search-box { display: none; }
 
-  .modal-body { grid-template-columns: 1fr; }
-  .modal-field-checkbox { margin-top: 0; }
+  .modal-field-checkbox, .modal-field-toggle { margin-top: 0; }
 
   .modal-overlay {
     padding: 12px;

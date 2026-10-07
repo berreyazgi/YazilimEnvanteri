@@ -1,0 +1,130 @@
+﻿@* Shared "Yeni Proje" / "Projeyi Düzenle" modal - rendered on the Projelerim list (create + edit
+   from the row menu) and on the project detail page (edit). Behaviour: wwwroot/js/modules/project-form.js. *@
+<div class="modal-overlay" data-create-proje-overlay>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-proje-title">
+        <form data-create-proje-form novalidate>
+            <input type="hidden" name="id" data-proje-form-id value="" />
+            <div class="modal-header">
+                <h2 class="modal-title" id="create-proje-title" data-proje-form-title>Yeni Proje Oluştur</h2>
+                <button type="button" class="modal-close" data-close-create-proje aria-label="Kapat">
+                    <span data-icon="close" data-icon-size="18"></span>
+                </button>
+            </div>
+
+            <!-- Mobile slider header / progress bar -->
+            <div class="modal-slider-header" data-modal-slider-header>
+                <div class="slider-progress-bar">
+                    <div class="slider-progress-fill" data-slider-progress-fill style="width: 33.33%;"></div>
+                </div>
+                <div class="slider-step-info">
+                    <span class="slider-step-title" data-slider-step-title>1. Temel Bilgiler</span>
+                    <span class="slider-step-count" data-slider-step-count>1 / 3</span>
+                </div>
+                <div class="slider-dots" data-slider-dots>
+                    <button type="button" class="slider-dot active" data-step-dot="1" aria-label="1. Adım"></button>
+                    <button type="button" class="slider-dot" data-step-dot="2" aria-label="2. Adım"></button>
+                    <button type="button" class="slider-dot" data-step-dot="3" aria-label="3. Adım"></button>
+                </div>
+            </div>
+
+            <div class="modal-body" data-modal-body-slider>
+                <div class="modal-error" data-create-proje-error></div>
+
+                <div class="modal-slider-track" data-modal-slider-track data-active-step="1">
+                    <!-- Slide 1: Temel Bilgiler -->
+                    <div class="modal-slide active" data-slide="1">
+                        <div class="slide-badge">1. Temel Bilgiler</div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-kodu">Proje Kodu</label>
+                            <input id="create-proje-kodu" name="projeKodu" type="text" class="field-input" required
+                                   maxlength="50" autocomplete="off" inputmode="numeric" pattern="[0-9]*" spellcheck="false"
+                                   placeholder="Örn. 100, 9999" aria-describedby="create-proje-kodu-hint" data-proje-kodu-input />
+                            <small class="field-hint" id="create-proje-kodu-hint">Benzersiz olmalı. Sadece rakam kullanılabilir.</small>
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-adi">Proje Adı</label>
+                            <input id="create-proje-adi" name="projeAdi" type="text" class="field-input" maxlength="200" required />
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-hizmet">Hizmet Alanı</label>
+                            <input id="create-proje-hizmet" name="projeHizmetAlani" type="text" class="field-input" maxlength="100" placeholder="Örn. Yazılım, Altyapı, Uygulama" required />
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-durum">Durum</label>
+                            <select id="create-proje-durum" name="projeDurum" class="field-select" required></select>
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-kritiklik">Kritiklik</label>
+                            <select id="create-proje-kritiklik" name="projeKritiklik" class="field-select" required></select>
+                        </div>
+                    </div>
+
+                    <!-- Slide 2: Sorumlu & Teknoloji -->
+                    <div class="modal-slide" data-slide="2">
+                        <div class="slide-badge">2. Sorumlu & Teknoloji</div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-birim">Birim</label>
+                            <select id="create-proje-birim" name="birimId" class="field-select" required></select>
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-uzman">Yazılım Uzmanı</label>
+                            <select id="create-proje-uzman" name="yazilimUzmaniId" class="field-select" required></select>
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-teknoloji">Teknoloji</label>
+                            <select id="create-proje-teknoloji" name="teknolojiId" class="field-select" required></select>
+                        </div>
+                    </div>
+
+                    <!-- Slide 3: Altyapı & Detaylar -->
+                    <div class="modal-slide" data-slide="3">
+                        <div class="slide-badge">3. Altyapı & Detaylar</div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-sunucu">Sunucu</label>
+                            <input id="create-proje-sunucu" name="sunucu" type="text" class="field-input" maxlength="100" />
+                        </div>
+
+                        <div class="filter-field">
+                            <label class="field-label" for="create-proje-website">Web Adresi</label>
+                            <input id="create-proje-website" name="websiteUrl" type="text" class="field-input" maxlength="300" placeholder="https://..." />
+                        </div>
+
+                        <div class="modal-field-toggle" role="radiogroup" aria-label="Proje durumu">
+                            <label class="modal-field-checkbox">
+                                <input type="radio" name="projeAktifMi" value="true" checked /> Proje Aktif
+                            </label>
+                            <label class="modal-field-checkbox">
+                                <input type="radio" name="projeAktifMi" value="false" /> Proje Askıda
+                            </label>
+                        </div>
+
+                        <div class="filter-field modal-field--full">
+                            <label class="field-label" for="create-proje-aciklama">Proje Açıklaması</label>
+                            <textarea id="create-proje-aciklama" name="projeAciklamasi" class="field-input" maxlength="500" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="app-button app-button--outline" data-close-create-proje data-modal-cancel-btn>Vazgeç</button>
+                <button type="button" class="app-button app-button--outline" data-slider-prev-btn style="display:none;">
+                    <span data-icon="chevronLeft" data-icon-size="16"></span> Geri
+                </button>
+                <button type="button" class="app-button" data-slider-next-btn style="display:none;">
+                    İleri <span data-icon="chevronRight" data-icon-size="16"></span>
+                </button>
+                <button type="submit" class="app-button" data-create-proje-submit>Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>

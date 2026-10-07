@@ -82,22 +82,6 @@
 .metric-card-icon--warning { background: var(--color-warning-bg); color: var(--color-warning); }
 
 /* ==========================================================================
-   Section header (shared heading style also used on the Projelerim page)
-   ========================================================================== */
-.section-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-
-.section-header-title { margin: 0; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
-.section-header-subtitle { margin: 4px 0 0; font-size: 13px; color: var(--color-text-secondary); max-width: 560px; }
-.section-header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-/* ==========================================================================
    Analytics placeholder - reserved sections for future Chart.js widgets.
    No data is rendered here yet, only static labels.
    ========================================================================== */

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using YazilimEnvanteri.Data;
-using YazilimEnvanteri.Data.Dapper;
+using Npgsql;
 using YazilimEnvanteri.Services.Implementations;
 using YazilimEnvanteri.Services.Interfaces;
 
@@ -14,15 +14,16 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Dapper connection factory
-builder.Services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
+// Pooled Npgsql data source for Dapper
+builder.Services.AddSingleton(NpgsqlDataSource.Create(builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("'DefaultConnection' connection string is not configured.")));
 
 // Per-entity services (Dapper-backed, no repository layer)
 builder.Services.AddScoped<IProjeService, ProjeService>();
-builder.Services.AddScoped<IBirimService, BirimService>();
-builder.Services.AddScoped<IPersonelService, PersonelService>();
-builder.Services.AddScoped<IYazilimUzmaniService, YazilimUzmaniService>();
-builder.Services.AddScoped<ITeknolojiService, TeknolojiService>();
+builder.Services.AddScoped<IProjeExportService, ProjeExportService>();
+builder.Services.AddScoped<BirimService>();
+builder.Services.AddScoped<YazilimUzmaniService>();
+builder.Services.AddScoped<TeknolojiService>();
 
 var app = builder.Build();
 

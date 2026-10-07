@@ -1,0 +1,25 @@
+@* Compact header shown on touch tablets/phones (AppConfig.media.touchCompact), where the sidebar becomes an
+   off-canvas drawer: [menu] Yazılım Envanteri [account]. The account slot shows the current user
+   from AppConfig.currentUser - the app has no authentication yet, so there is deliberately no
+   Login/Logout action here; this is where it plugs in once sign-in exists. *@
+<header class="mobile-header" data-mobile-header>
+    <button type="button" class="menu-toggle" data-sidebar-toggle aria-label="Menüyü aç/kapat" aria-expanded="false">
+        <span data-icon="menu" data-icon-size="20"></span>
+    </button>
+
+    <a class="mobile-header-title" href="/">Yazılım Envanteri</a>
+
+    <div class="user-wrap mobile-header-account">
+        <button type="button" class="user-block" data-dropdown-trigger="mobileUserMenu" aria-label="Hesap menüsü">
+            <span class="avatar avatar-sm" data-user-initials></span>
+            <span class="user-name mobile-header-user-name" data-user-name></span>
+        </button>
+        <div class="dropdown-panel" id="mobileUserMenu">
+            <div class="dropdown-user">
+                <span class="user-name" data-user-name></span>
+                <span class="user-role" data-user-role></span>
+            </div>
+            <span class="dropdown-item dropdown-item--muted">Oturum yönetimi bu sürümde kullanılamıyor.</span>
+        </div>
+    </div>
+</header>

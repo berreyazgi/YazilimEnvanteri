@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using YazilimEnvanteri.Data;
@@ -11,9 +12,11 @@ using YazilimEnvanteri.Data;
 namespace YazilimEnvanteri.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260925131010_MoveYazilimUzmaniPersonelBilgileri")]
+    partial class MoveYazilimUzmaniPersonelBilgileri
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,18 +164,11 @@ namespace YazilimEnvanteri.Migrations
                         .HasColumnType("character varying(100)")
                         .HasComment("Projenin hizmet alanını belirtir. Örneğin: Yazılım, Altyapı, Uygulama vb.");
 
-                    b.Property<string>("ProjeKodu")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<int>("ProjeKodu")
+                        .HasColumnType("integer");
 
                     b.Property<int>("ProjeKritiklik")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("SilindiMi")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<string>("Sunucu")
                         .IsRequired()
@@ -195,17 +191,13 @@ namespace YazilimEnvanteri.Migrations
                     b.HasIndex("BirimId");
 
                     b.HasIndex("ProjeKodu")
-                        .IsUnique()
-                        .HasFilter("\"SilindiMi\" = FALSE");
+                        .IsUnique();
 
                     b.HasIndex("TeknolojiId");
 
                     b.HasIndex("YazilimUzmaniId");
 
-                    b.ToTable("Proje", "Proje", t =>
-                        {
-                            t.HasCheckConstraint("CK_Proje_ProjeKodu_Format", "\"ProjeKodu\" ~ '^[A-Z0-9ÇĞİÖŞÜ][A-Z0-9ÇĞİÖŞÜ_-]*$'");
-                        });
+                    b.ToTable("Proje", "Proje");
                 });
 
             modelBuilder.Entity("YazilimEnvanteri.Models.Entities.TeknolojiEntity", b =>

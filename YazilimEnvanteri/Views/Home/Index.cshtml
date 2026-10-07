@@ -8,8 +8,6 @@
     bool dataError = (bool?)ViewBag.DataError ?? false;
 }
 
-<partial name="_Topbar" />
-
 <section class="app-card hero-banner">
     <div class="hero-banner-text">
         <h2 class="hero-banner-title">Tekrar hoş geldiniz!</h2>
@@ -58,10 +56,10 @@ else
             </div>
             <span class="metric-card-icon metric-card-icon--purple" data-icon="layers" data-icon-size="20"></span>
         </a>
-        <a href="/Proje?durum=Test%2F%C4%B0nceleme" class="app-card metric-card">
+        <a href="/Proje?durum=Test" class="app-card metric-card">
             <div>
-                <p class="metric-card-label">Test / İnceleme</p>
-                <p class="metric-card-value">@Model.TestIncelemeProje</p>
+                <p class="metric-card-label">Test Aşamasında</p>
+                <p class="metric-card-value">@Model.TestProje</p>
             </div>
             <span class="metric-card-icon metric-card-icon--warning" data-icon="alertTriangle" data-icon-size="20"></span>
         </a>

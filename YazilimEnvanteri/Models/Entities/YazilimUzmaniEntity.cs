@@ -1,21 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Globalization;
 
 namespace YazilimEnvanteri.Models.Entities
 {
     public class YazilimUzmaniEntity : BaseEntity
     {
-        //yazılım uzmanını personel tablosuna bağla özelleştirilmesi gerekenleri yazılım uzmanı tablosunda bırak
+        // Kimlik/iletişim bilgileri (KullanıcıAdi, Ad, Soyad, Email, Gorev, Telefon) PersonelEntity'de
+        // tutulur; burada yalnızca personele referans ve yazılım uzmanına özgü alanlar kalır.
+        [ForeignKey("PersonelEntity")]
+        public int PersonelId { get; set; }
         [ForeignKey("ProjeEntity")]
         public int ProjeId { get; set; }
         [ForeignKey("BirimEntity")]
-        public int Birim { get; set; }
-        public string KullanıcıAdi { get; set; }
-        public string Ad { get; set; } = string.Empty;
-        public string Soyad { get; set; } = string.Empty;
-        public string Gorev { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public int Telefon { get; set; } 
+        public int BirimId { get; set; }
         public string SorumluFirma { get; set; } = string.Empty;
 
         public YazilimUzmaniEntity() { }

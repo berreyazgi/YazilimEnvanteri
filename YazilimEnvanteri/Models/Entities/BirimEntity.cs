@@ -7,10 +7,10 @@ namespace YazilimEnvanteri.Models.Entities
 
         [ForeignKey("YazilimUzmaniEntity")]
         public int YazilimUzmaniId { get; set; }
-        public string UstBirim { get; set; } 
-        public string AltBirim { get; set; } 
-        public string Birim { get; set; } 
-        public BirimEntity() { }
+        public string UstBirim { get; set; } = string.Empty;
+        public string AltBirim { get; set; } = string.Empty;
+        public string Birim { get; set; } = string.Empty;
+
 
     }
 }

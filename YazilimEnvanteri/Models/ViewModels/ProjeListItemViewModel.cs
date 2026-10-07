@@ -3,7 +3,7 @@ namespace YazilimEnvanteri.Models.ViewModels
     public class ProjeListItemViewModel
     {
         public int Id { get; set; }
-        public int ProjeKodu { get; set; }
+        public string ProjeKodu { get; set; } = string.Empty;
         public string ProjeAdi { get; set; } = string.Empty;
         public string ProjeHizmetAlani { get; set; } = string.Empty;
         public string ProjeAciklamasi { get; set; } = string.Empty;

@@ -4,12 +4,8 @@
     ViewData["Page"] = "project-detail";
     ViewData["NavKey"] = "projects";
     ViewData["ShowSearch"] = false;
-    ViewData["TopbarTitle"] = "Proje Detayı";
-
     bool dataError = (bool?)ViewBag.DataError ?? false;
 }
-
-<partial name="_Topbar" />
 
 <a class="detail-back" href="/Proje">
     <span data-icon="arrowLeft" data-icon-size="16"></span> Projelere Dön
@@ -28,7 +24,7 @@ else
 {
     bool hasInfrastructure = !string.IsNullOrWhiteSpace(Model.Sunucu) || !string.IsNullOrWhiteSpace(Model.WebsiteUrl);
     bool hasTechnology = !string.IsNullOrWhiteSpace(Model.BackendTeknoloji) || !string.IsNullOrWhiteSpace(Model.FrontendTeknoloji)
-        || !string.IsNullOrWhiteSpace(Model.Veritabani) || Model.EntegrasyonDurum.HasValue || Model.EimzaDurum.HasValue;
+        || !string.IsNullOrWhiteSpace(Model.Veritabani) || Model.EimzaDurum.HasValue;
     bool hasDeveloper = !string.IsNullOrWhiteSpace(Model.YazilimUzmaniAdSoyad);
 
     <div class="detail-header">
@@ -39,7 +35,6 @@ else
                     {
                         "Analiz" => "purple",
                         "Geliştirme" => "info",
-                        "İnceleme" => "warning",
                         "Test" => "orange",
                         "Tamamlanmış" => "teal",
                         "Yayında" => "success",
@@ -64,13 +59,37 @@ else
                 <p class="detail-description">@Model.ProjeAciklamasi</p>
             }
         </div>
+        @* The list's row actions minus "Detayı Görüntüle" (we're already here). On mobile "Web Sitesini
+           Aç" moves into the "..." menu so Düzenle + ... always fit next to each other. *@
         <div class="detail-header-actions">
             @if (!string.IsNullOrWhiteSpace(Model.WebsiteUrl))
             {
-                <a class="app-button" href="@Model.WebsiteUrl" target="_blank" rel="noopener">
+                <a class="app-button app-button--outline detail-website-button" href="@Model.WebsiteUrl" target="_blank" rel="noopener">
                     <span data-icon="externalLink" data-icon-size="16"></span> Web Sitesini Aç
                 </a>
             }
+            <button type="button" class="app-button" data-edit-proje="@Model.Id">
+                <span data-icon="edit" data-icon-size="16"></span> Düzenle
+            </button>
+            <div class="row-actions">
+                <button type="button" class="row-menu-trigger" data-row-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Diğer işlemler">
+                    <span data-icon="moreHorizontal" data-icon-size="16"></span>
+                </button>
+                <div class="row-menu-panel">
+                    @if (!string.IsNullOrWhiteSpace(Model.WebsiteUrl))
+                    {
+                        <a class="detail-menu-website" href="@Model.WebsiteUrl" target="_blank" rel="noopener">
+                            <span data-icon="externalLink" data-icon-size="15"></span> Web Sitesini Aç
+                        </a>
+                    }
+                    <button type="button" data-edit-proje="@Model.Id">
+                        <span data-icon="edit" data-icon-size="15"></span> Projeyi Düzenle
+                    </button>
+                    <button type="button" class="row-menu-danger" data-delete-proje="@Model.Id">
+                        <span data-icon="trash" data-icon-size="15"></span> Projeyi Sil
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -201,17 +220,6 @@ else
                         <span class="info-row-value @(string.IsNullOrWhiteSpace(Model.Veritabani) ? "info-row-value--muted" : "")">@(string.IsNullOrWhiteSpace(Model.Veritabani) ? "Bilgi bulunmuyor" : Model.Veritabani)</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-row-label">Entegrasyon Durumu</span>
-                        @if (Model.EntegrasyonDurum.HasValue)
-                        {
-                            <span class="status-badge status-badge--@(Model.EntegrasyonDurum.Value ? "success" : "neutral")">@(Model.EntegrasyonDurum.Value ? "Evet" : "Hayır")</span>
-                        }
-                        else
-                        {
-                            <span class="info-row-value info-row-value--muted">Bilgi bulunmuyor</span>
-                        }
-                    </div>
-                    <div class="info-row">
                         <span class="info-row-label">E-İmza Desteği</span>
                         @if (Model.EimzaDurum.HasValue)
                         {
@@ -280,6 +288,18 @@ else
     }
 }
 
+@if (!dataError && Model != null)
+{
+    <partial name="_ProjeFormModal" />
+}
+
 @section Styles {
+    <link rel="stylesheet" href="~/lib/choices.js/choices.min.css" />
     <link rel="stylesheet" href="~/css/project-detail.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/projects.css" asp-append-version="true" />
+}
+
+@* Edit modal dropdowns (project-form.js enhanceSelect). *@
+@section Scripts {
+    <script src="~/lib/choices.js/choices.min.js"></script>
 }

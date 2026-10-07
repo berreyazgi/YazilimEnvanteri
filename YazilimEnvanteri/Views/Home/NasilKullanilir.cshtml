@@ -1,0 +1,73 @@
+@{
+    ViewData["Title"] = "Nasıl Kullanılır?";
+    ViewData["Page"] = "help";
+    ViewData["NavKey"] = "help";
+}
+
+<section class="help-page">
+    <div class="section-header">
+        <div>
+            <h2 class="section-header-title">Nasıl Kullanılır?</h2>
+            <p class="section-header-subtitle">Yazılım Envanteri'nin temel işlemlerine kısa bir rehber.</p>
+        </div>
+        <div class="section-header-actions">
+            <a class="app-button app-button--outline" href="/Proje">
+                <span data-icon="arrowLeft" data-icon-size="16"></span> Projelerim'e Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="help-grid">
+        <article class="app-card help-card">
+            <h3 class="help-card-title"><span data-icon="projects" data-icon-size="18"></span> Projeler</h3>
+            <ul class="help-list">
+                <li>Tüm projeleri görmek için menüden <strong>Projelerim</strong> sayfasını açın.</li>
+                <li><strong>Proje Ara</strong> alanına proje adı, proje kodu, birim, sunucu veya teknoloji yazarak arama yapabilirsiniz.</li>
+                <li>Tablo başlıklarındaki oklara tıklayarak listeyi sıralayabilirsiniz.</li>
+                <li>Bir projenin tüm bilgileri için satırdaki <strong>Detaylar</strong> düğmesine tıklayın.</li>
+            </ul>
+        </article>
+
+        <article class="app-card help-card">
+            <h3 class="help-card-title"><span data-icon="settings" data-icon-size="18"></span> Filtreler</h3>
+            <ul class="help-list">
+                <li><strong>Hizmet Alanı</strong>, <strong>Birim</strong>, <strong>Durum</strong> ve <strong>Kritiklik</strong> alanlarında birden fazla değer seçebilirsiniz.</li>
+                <li>Aynı alanda seçilen değerlerden <em>herhangi birine</em> uyan projeler listelenir. Örneğin Durum'da "Analiz" ve "Test" seçerseniz iki durumdaki projeler de görünür.</li>
+                <li>Farklı alanlardaki seçimler birlikte uygulanır: Birim ve Durum seçtiğinizde her iki koşula da uyan projeler görünür.</li>
+                <li>Bir seçimi kaldırmak için yanındaki <strong>×</strong> işaretine tıklayın.</li>
+                <li>"Sadece Aktif Projeler" ve "Web Adresi Olanlar" seçenekleri filtre çubuğunda doğrudan yer alır.</li>
+            </ul>
+        </article>
+
+        <article class="app-card help-card">
+            <h3 class="help-card-title"><span data-icon="project" data-icon-size="18"></span> Yeni Proje</h3>
+            <ul class="help-list">
+                <li>Projelerim sayfasındaki <strong>Yeni Proje</strong> düğmesine tıklayın ve formu doldurup <strong>Kaydet</strong>'e basın.</li>
+                <li><strong>Proje Kodu</strong>, projeyi tanımlayan kısa koddur ve her projede farklı olmalıdır.</li>
+                <li>Sadece rakam kullanılabilir; harf, boşluk ve özel karakter kullanılamaz.</li>
+            </ul>
+            <div class="help-examples" aria-label="Geçerli proje kodu örnekleri">
+                <code>100</code><code>2026001</code><code>9999</code>
+            </div>
+        </article>
+
+        <article class="app-card help-card">
+            <h3 class="help-card-title"><span data-icon="edit" data-icon-size="18"></span> Proje Düzenleme</h3>
+            <ul class="help-list">
+                <li>Proje detay sayfasında başlığın sağındaki <strong>Düzenle</strong> düğmesine tıklayın.</li>
+                <li>Listeden düzenlemek için satırdaki <strong>...</strong> menüsünden <strong>Projeyi Düzenle</strong>'yi seçebilirsiniz.</li>
+                <li>Değişiklikleri yapıp <strong>Kaydet</strong>'e basın. Projenin mevcut kodunu değiştirmeden kaydedebilirsiniz.</li>
+            </ul>
+        </article>
+
+        <article class="app-card help-card">
+            <h3 class="help-card-title"><span data-icon="menu" data-icon-size="18"></span> Mobil Kullanım</h3>
+            <ul class="help-list">
+                <li>Üst başlıktaki <strong>menü</strong> düğmesiyle sayfalar arasında geçiş yapabilirsiniz; hesap bilgileriniz sağ üstte yer alır.</li>
+                <li>Filtreler, <strong>Filtreler</strong> düğmesine dokununca açılır.</li>
+                <li>Proje kartlarındaki <strong>...</strong> düğmesi düzenleme, web sitesini açma ve projeyi silme işlemlerini içerir.</li>
+                <li>Proje detayında <strong>Düzenle</strong> ve <strong>...</strong> düğmeleri başlığın sağında bulunur.</li>
+            </ul>
+        </article>
+    </div>
+</section>

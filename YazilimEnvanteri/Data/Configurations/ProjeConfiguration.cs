@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using YazilimEnvanteri.Models.Entities;
+using YazilimEnvanteri.Models.Validation;
 
 namespace YazilimEnvanteri.Data.Configurations
 {
@@ -8,15 +9,25 @@ namespace YazilimEnvanteri.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<ProjeEntity> builder)
         {
-            builder.ToTable("Proje", "Proje");
+            // Last line of defence for the Proje Kodu format (the app validates first, with a
+            // friendly message) - rejects e.g. "-23" even if written outside the application.
+            builder.ToTable("Proje", "Proje", t => t.HasCheckConstraint(
+                "CK_Proje_ProjeKodu_Format",
+                $"\"ProjeKodu\" ~ '{ProjeKoduKurali.Desen}'"));
 
             builder.ConfigureBaseEntity();
 
             builder.Property(p => p.ProjeKodu)
-                .IsRequired();
-            
+                .IsRequired()
+                .HasMaxLength(ProjeKoduKurali.MaxLength);
+
+            // Pasif silinen projelerin kodu yeniden kullanılabilsin diye yalnızca silinmemiş kayıtlarda benzersiz.
             builder.HasIndex(p => p.ProjeKodu)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("\"SilindiMi\" = FALSE");
+
+            builder.Property(p => p.SilindiMi)
+                .HasDefaultValue(false);
 
             builder.Property(p => p.ProjeAdi)
                 .IsRequired()

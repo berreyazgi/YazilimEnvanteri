@@ -18,13 +18,20 @@
 
     if (bar) bar.style.display = "flex";
 
-    var pageSize = state.pagination.pageSize;
-    var page = state.pagination.page;
-    var totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-    var start = (page - 1) * pageSize + 1;
-    var end = Math.min(totalItems, page * pageSize);
+    var showingAll = state.pagination.pageSize === "all";
+    var page = showingAll ? 1 : state.pagination.page;
+    var start = showingAll ? 1 : (page - 1) * state.pagination.pageSize + 1;
+    var end = showingAll ? totalItems : Math.min(totalItems, page * state.pagination.pageSize);
 
     summary.textContent = start + "–" + end + " / " + totalItems + " proje gösteriliyor";
+
+    if (showingAll) {
+      controls.innerHTML = "";
+      return;
+    }
+
+    var pageSize = state.pagination.pageSize;
+    var totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
     var buttons = [];
     buttons.push(pageButton("‹", page - 1, page === 1, "Önceki sayfa"));
@@ -67,11 +74,12 @@
     var sizeSelect = document.querySelector("[data-page-size]");
     if (sizeSelect) {
       sizeSelect.innerHTML = cfg.pageSizeOptions.map(function (size) {
-        return '<option value="' + size + '"' + (size === state.pagination.pageSize ? " selected" : "") + ">" + size + "</option>";
+        var label = (cfg.pageSizeLabels && cfg.pageSizeLabels[size]) || size;
+        return '<option value="' + size + '"' + (size === state.pagination.pageSize ? " selected" : "") + ">" + label + "</option>";
       }).join("");
 
       sizeSelect.addEventListener("change", function () {
-        state.pagination.pageSize = Number(sizeSelect.value);
+        state.pagination.pageSize = sizeSelect.value === "all" ? "all" : Number(sizeSelect.value);
         state.pagination.page = 1;
         onChange();
       });

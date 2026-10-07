@@ -33,6 +33,13 @@ namespace YazilimEnvanteri.Controllers
             }
         }
 
+        // "Nasıl Kullanılır?" - static end-user guide, linked from the sidebar / mobile menu.
+        [HttpGet]
+        public IActionResult NasilKullanilir()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
