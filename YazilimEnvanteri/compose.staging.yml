@@ -1,0 +1,50 @@
+services:
+
+  postgres:
+    image: postgres:18
+    container_name: yazilim-envanteri-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: postgres1234
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -Uadmin -d postgres"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  app:
+    image: yazilim-envanteri:staging
+    container_name: yazilim-envanteri-app
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Staging
+      ConnectionStrings__DefaultConnection: >
+        Host=postgres;
+        Port=5432;
+        Database=postgres;
+        Username=${POSTGRES_USER};
+        Password=postgres1234;
+
+    ports:
+      - "127.0.0.1:5000:8080"
+
+
+volumes:
+  postgres_data:
