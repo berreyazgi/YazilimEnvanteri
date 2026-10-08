@@ -3,10 +3,12 @@ services:
     image: postgres:18
     container_name: yazilim-envanteri-db
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Boş bırakılır, dışarıdan gelir
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} 
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
