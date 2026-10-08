@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using YazilimEnvanteri.Data;
 using Npgsql;
 using YazilimEnvanteri.Services.Implementations;
@@ -9,14 +10,34 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Local: appsettings.Development.json (postgres from compose.staging.yml on localhost:5432).
+// Docker: ConnectionStrings__DefaultConnection env var.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("'DefaultConnection' connection string is not configured.");
+
 // Database Context - kept registered for EF Core migrations/schema tooling only; runtime data
 // access goes through Dapper (see Services/Implementations) rather than this context.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // Pooled Npgsql data source for Dapper
-builder.Services.AddSingleton(NpgsqlDataSource.Create(builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("'DefaultConnection' connection string is not configured.")));
+var dataSource = NpgsqlDataSource.Create(connectionString);
+builder.Services.AddSingleton(dataSource);
+
+// /health: 200 only when the app is up AND postgres answers.
+builder.Services.AddHealthChecks().AddAsyncCheck("postgres", async ct =>
+{
+    try
+    {
+        await using var cmd = dataSource.CreateCommand("SELECT 1");
+        await cmd.ExecuteScalarAsync(ct);
+        return HealthCheckResult.Healthy();
+    }
+    catch (Exception ex)
+    {
+        return HealthCheckResult.Unhealthy(exception: ex);
+    }
+});
 
 // Per-entity services (Dapper-backed, no repository layer)
 builder.Services.AddScoped<IProjeService, ProjeService>();
@@ -39,6 +60,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.MapHealthChecks("/health");
 
 app.MapControllerRoute(
     name: "default",
