@@ -18,8 +18,6 @@ namespace YazilimEnvanteri.Models.Entities
         [ForeignKey("BirimEntity")]
         [Range(1, int.MaxValue, ErrorMessage = "Birim seçilmelidir.")]
         public int BirimId { get; set; }
-        // İnsan tarafından okunabilir, benzersiz proje kimliği (ör. PRJ-100, 9999) - kurallar için
-        // bkz. Models/Validation/ProjeKoduKurali. Id yalnızca iç anahtar olarak kalır.
         public string ProjeKodu { get; set; } = string.Empty;
         public string ProjeAdi { get; set; } = string.Empty;
 
@@ -34,7 +32,6 @@ namespace YazilimEnvanteri.Models.Entities
         [EnumDataType(typeof(Enums.ProjeKritiklik), ErrorMessage = "Kritiklik seçilmelidir.")]
         public Enums.ProjeKritiklik ProjeKritiklik { get; set; }
 
-        // Pasif silme bayrağı - yalnızca ProjeService.DeleteAsync set eder; true olan kayıtlar listelenmez.
         [JsonIgnore]
         public bool SilindiMi { get; set; }
 

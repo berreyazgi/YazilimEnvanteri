@@ -1,0 +1,41 @@
+@model YazilimEnvanteri.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Kayıt Ol";
+    Layout = "_AuthLayout";
+}
+
+<h1 class="auth-title">Kayıt Ol</h1>
+<p class="auth-subtitle">Yeni hesaplar Gözlemci (Observer) yetkisiyle açılır; ek yetkileri SuperAdmin verir.</p>
+
+<form asp-action="Register" method="post" class="auth-form" novalidate>
+    <div asp-validation-summary="ModelOnly" class="form-alert form-alert--danger"></div>
+
+    <div>
+        <label asp-for="AdSoyad" class="field-label"></label>
+        <input asp-for="AdSoyad" class="field-input" autocomplete="name" autofocus />
+        <span asp-validation-for="AdSoyad" class="field-error"></span>
+    </div>
+
+    <div>
+        <label asp-for="Email" class="field-label"></label>
+        <input asp-for="Email" class="field-input" autocomplete="username" />
+        <span asp-validation-for="Email" class="field-error"></span>
+    </div>
+
+    <div>
+        <label asp-for="Password" class="field-label"></label>
+        <input asp-for="Password" class="field-input" autocomplete="new-password" />
+        <span asp-validation-for="Password" class="field-error"></span>
+        <span class="field-hint">En az 6 karakter; büyük harf, küçük harf, rakam ve sembol içermelidir.</span>
+    </div>
+
+    <div>
+        <label asp-for="ConfirmPassword" class="field-label"></label>
+        <input asp-for="ConfirmPassword" class="field-input" autocomplete="new-password" />
+        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+    </div>
+
+    <button type="submit" class="app-button">Kayıt Ol</button>
+</form>
+
+<p class="auth-footer">Zaten hesabınız var mı? <a asp-action="Login">Giriş yapın</a></p>

@@ -1,0 +1,32 @@
+@model YazilimEnvanteri.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Giriş Yap";
+    Layout = "_AuthLayout";
+}
+
+<h1 class="auth-title">Yazılım Envanteri</h1>
+<p class="auth-subtitle">Devam etmek için hesabınızla giriş yapın.</p>
+
+<form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="auth-form" novalidate>
+    <div asp-validation-summary="ModelOnly" class="form-alert form-alert--danger"></div>
+
+    <div>
+        <label asp-for="Email" class="field-label"></label>
+        <input asp-for="Email" class="field-input" autocomplete="username" autofocus />
+        <span asp-validation-for="Email" class="field-error"></span>
+    </div>
+
+    <div>
+        <label asp-for="Password" class="field-label"></label>
+        <input asp-for="Password" class="field-input" autocomplete="current-password" />
+        <span asp-validation-for="Password" class="field-error"></span>
+    </div>
+
+    <label class="field-label filter-checkbox-label">
+        <input asp-for="RememberMe" /> @Html.DisplayNameFor(m => m.RememberMe)
+    </label>
+
+    <button type="submit" class="app-button">Giriş Yap</button>
+</form>
+
+<p class="auth-footer">Hesabınız yok mu? <a asp-action="Register">Kayıt olun</a></p>

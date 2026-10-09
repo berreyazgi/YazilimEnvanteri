@@ -20,6 +20,10 @@ namespace YazilimEnvanteri.Models.Entities
         //empty olabilir
         public string SorumluPersonel{ get; set; } = string.Empty;
 
+        // Personelin giriş hesabı (AspNetUsers.Id) - yalnızca IdentitySeeder personel senkronu set eder;
+        // PersonelService'in INSERT/UPDATE sorguları bu kolonu içermez.
+        public string? AppUserId { get; set; }
+
 
 
     }

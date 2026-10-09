@@ -51,7 +51,85 @@
   --z-header: 40;
   --z-dropdown: 50;
   --z-overlay: 60;
+
+  /* Inline-editable table cells (project-inline-edit.js) */
+  --color-cell-hover: rgba(22, 104, 216, 0.05);
+  --color-cell-editing: #ffffff;
+
+  color-scheme: light;
 }
+
+/* ==========================================================================
+   Dark theme - same tokens, dark values. <html data-theme="dark"> is set before first paint by
+   Views/Shared/_ThemeInit.cshtml and switched by wwwroot/js/modules/theme.js; every component
+   reads these variables, so no per-component dark rules are needed except for third-party CSS
+   (Choices.js, below).
+   ========================================================================== */
+:root[data-theme="dark"] {
+  --color-primary: #3d82e4;
+  --color-primary-dark: #2a6bc9;
+  --color-primary-light: #1a2c47;
+
+  --color-sidebar: #0b1220;
+  --color-sidebar-hover: #16233a;
+  --color-sidebar-active: #2a6bc9;
+  --color-sidebar-text: #8796b0;
+  --color-sidebar-text-active: #f1f4f9;
+
+  --color-page-background: #0f1623;
+  --color-surface: #172031;
+
+  --color-text-primary: #e3e8f0;
+  --color-text-secondary: #9ba8bd;
+  --color-text-muted: #6d7b92;
+  --color-border: #263247;
+
+  --color-success: #3cc48c;
+  --color-success-bg: rgba(60, 196, 140, 0.14);
+  --color-warning: #eda548;
+  --color-warning-bg: rgba(237, 165, 72, 0.14);
+  --color-danger: #f0717c;
+  --color-danger-bg: rgba(240, 113, 124, 0.14);
+  --color-info: #5c9bf0;
+  --color-info-bg: rgba(92, 155, 240, 0.14);
+  --color-purple: #a08af0;
+  --color-purple-bg: rgba(160, 138, 240, 0.15);
+  --color-teal: #3cc3d0;
+  --color-teal-bg: rgba(60, 195, 208, 0.14);
+  --color-orange: #ee9f5c;
+  --color-orange-bg: rgba(238, 159, 92, 0.14);
+
+  --shadow-small: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  --color-cell-hover: rgba(92, 155, 240, 0.07);
+  --color-cell-editing: #1c2739;
+
+  color-scheme: dark;
+}
+
+/* Toasts sit on the (brighter, in dark) success/danger colours - dark text keeps them readable. */
+:root[data-theme="dark"] .toast { color: #0b1220; }
+
+/* Choices.js ships light-only colours (#fff / #f9f9f9 / #ddd); map them onto the theme tokens. */
+:root[data-theme="dark"] .choices__inner,
+:root[data-theme="dark"] .choices__input,
+:root[data-theme="dark"] .choices__list--dropdown,
+:root[data-theme="dark"] .choices__list[aria-expanded] {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+:root[data-theme="dark"] .choices__list--dropdown .choices__item--selectable.is-highlighted,
+:root[data-theme="dark"] .choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
+  background: var(--color-primary-light);
+}
+
+:root[data-theme="dark"] .choices[data-type*="select-one"] .choices__input { border-bottom-color: var(--color-border); }
+:root[data-theme="dark"] .choices.is-disabled .choices__inner { background: var(--color-page-background); }
+:root[data-theme="dark"] .choices[data-type*="select-one"]::after { border-top-color: var(--color-text-secondary); }
+:root[data-theme="dark"] .choices[data-type*="select-one"].is-open::after { border-bottom-color: var(--color-text-secondary); border-top-color: transparent; }
 
 /* ==========================================================================
    Reset & base
@@ -973,3 +1051,172 @@ table { border-collapse: collapse; }
 /* Prevents the page behind the off-canvas drawer from scrolling while it's open (see
    sidebar.js). */
 body.sidebar-open { overflow: hidden; }
+
+/* ==========================================================================
+   Sidebar account block (signed-in user + Çıkış Yap)
+   ========================================================================== */
+.sidebar-account {
+  margin-top: auto;
+  padding: 12px 4px 0;
+  border-top: 1px solid var(--color-sidebar-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-account-user { display: flex; align-items: center; gap: 8px; padding: 0 6px 8px; }
+.sidebar-account .avatar { background: var(--color-sidebar-active); }
+.sidebar-account-text { display: flex; flex-direction: column; min-width: 0; }
+.sidebar-account-name { color: var(--color-sidebar-text-active); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.sidebar-account-role { color: var(--color-sidebar-text); font-size: 12px; }
+.sidebar-logout { width: 100%; background: none; border: none; text-align: left; cursor: pointer; }
+
+/* ==========================================================================
+   Account pages (Views/Account) and Kullanıcı Yönetimi (Views/RoleManagement)
+   ========================================================================== */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--color-page-background);
+}
+
+.auth-card { width: 100%; max-width: 400px; padding: 28px 24px; }
+.auth-title { margin: 0 0 4px; font-size: 20px; font-weight: 700; color: var(--color-text-primary); }
+.auth-subtitle { margin: 0 0 20px; font-size: 13px; color: var(--color-text-secondary); }
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+.auth-form .app-button { justify-content: center; }
+.auth-footer { margin: 16px 0 0; font-size: 13px; color: var(--color-text-secondary); text-align: center; }
+.auth-footer a { color: var(--color-primary); font-weight: 600; }
+.field-error { display: block; margin-top: 4px; font-size: 12px; color: var(--color-danger); }
+
+.form-alert {
+  padding: 10px 12px;
+  border-radius: var(--radius-small);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.form-alert ul { margin: 0; padding-left: 18px; }
+.form-alert--danger { background: var(--color-danger-bg); color: var(--color-danger); }
+.form-alert--success { background: var(--color-success-bg); color: var(--color-success); }
+
+.user-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.user-table th, .user-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.user-table th { font-size: 12px; font-weight: 600; color: var(--color-text-secondary); }
+.user-table tr:last-child td { border-bottom: none; }
+.role-badges, .role-options { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.role-badges { gap: 6px; }
+.role-option { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.user-action-form { margin-top: 6px; }
+.temp-password { font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-small); background: var(--color-surface); color: var(--color-text-primary); user-select: all; }
+
+/* Show/hide password button (wwwroot/js/modules/password-toggle.js) */
+.password-field { position: relative; display: block; }
+.password-field input { padding-right: 42px; }
+.password-field input::-ms-reveal { display: none; } /* Edge's own eye would double up */
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.password-toggle:hover { color: var(--color-text-primary); background: var(--color-page-background); }
+.password-toggle:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+
+/* ==========================================================================
+   Theme toggle (wwwroot/js/modules/theme.js)
+   ========================================================================== */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.theme-toggle:hover { color: var(--color-text-primary); }
+.theme-toggle:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* Lives in each page's header (Views/Shared/_ThemeToggle.cshtml); same height as .app-button. */
+.section-header-actions .theme-toggle,
+.detail-header-actions .theme-toggle { flex-shrink: 0; }
+
+/* Home: the page header is the hero banner, so the toggle sits in its top-right corner. */
+.hero-banner-actions { position: absolute; top: 14px; right: 14px; z-index: 1; }
+.hero-banner .theme-toggle { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.3); color: #fff; }
+.hero-banner .theme-toggle:hover { background: rgba(255, 255, 255, 0.24); }
+
+/* Login / Register: no page header, so the toggle floats top-right. */
+.auth-theme-toggle { position: fixed; top: 16px; right: 16px; }
+
+@media (hover: none) and (pointer: coarse) {
+  .theme-toggle { min-width: 40px; min-height: 40px; } /* touch-sized */
+}
+
+/* ==========================================================================
+   Collapsible sidebar (desktop) - wwwroot/js/modules/sidebar.js
+
+   <html data-sidebar="collapsed"> shrinks the sidebar to an icon rail; labels and the account
+   text hide, every link keeps its icon and a title tooltip. The media query below is the exact
+   inverse of AppConfig.media.touchCompact, so touch tablets/phones keep their off-canvas drawer
+   untouched (and never see the collapse button).
+   ========================================================================== */
+.sidebar { transition: width 0.2s ease, padding 0.2s ease; }
+
+.sidebar-collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  width: 32px;
+  height: 32px;
+  margin: -6px 0 10px;
+  border: none;
+  border-radius: var(--radius-small);
+  background: none;
+  color: var(--color-sidebar-text);
+  cursor: pointer;
+}
+
+.sidebar-collapse-toggle:hover { background: var(--color-sidebar-hover); color: var(--color-sidebar-text-active); }
+.sidebar-collapse-toggle:focus-visible { outline: 2px solid var(--color-sidebar-active); outline-offset: 1px; }
+.sidebar-collapse-toggle svg { transition: transform 0.2s ease; }
+
+@media (hover: hover), (pointer: fine), (min-width: 1200px) {
+  :root[data-sidebar="collapsed"] { --sidebar-width: 68px; }
+  :root[data-sidebar="collapsed"] .sidebar { padding-left: 10px; padding-right: 10px; }
+  :root[data-sidebar="collapsed"] .sidebar-collapse-toggle { align-self: center; }
+  :root[data-sidebar="collapsed"] .sidebar-collapse-toggle svg { transform: rotate(180deg); }
+  :root[data-sidebar="collapsed"] .sidebar-link { justify-content: center; padding: 10px; }
+  :root[data-sidebar="collapsed"] .sidebar-link-label,
+  :root[data-sidebar="collapsed"] .sidebar-account-text { display: none; }
+  :root[data-sidebar="collapsed"] .sidebar-account { padding-left: 0; padding-right: 0; }
+  :root[data-sidebar="collapsed"] .sidebar-account-user { justify-content: center; padding-left: 0; padding-right: 0; }
+}
+
+@media (hover: none) and (pointer: coarse) and (max-width: 1199px) {
+  .sidebar-collapse-toggle { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar, .sidebar-collapse-toggle svg { transition: none; }
+}

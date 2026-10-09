@@ -13,6 +13,10 @@ namespace YazilimEnvanteri.Models.ViewModels
         public string ProjeDurum { get; set; } = string.Empty;
         public string ProjeKritiklik { get; set; } = string.Empty;
 
+        // Raw foreign keys, so the inline Birim / Yazılım Uzmanı dropdowns can preselect the current value.
+        public int BirimId { get; set; }
+        public int YazilimUzmaniId { get; set; }
+
         public string? Birim { get; set; }
         public string? UstBirim { get; set; }
         public string? AltBirim { get; set; }

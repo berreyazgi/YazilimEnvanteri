@@ -1,0 +1,21 @@
+@* Login / Register: no sidebar or app chrome, just the centered card. *@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Yazılım Envanteri ve Yönetim Portalı</title>
+    <partial name="_ThemeInit" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <button type="button" class="theme-toggle auth-theme-toggle" data-theme-toggle aria-label="Temayı değiştir"></button>
+    <main class="auth-page">
+        <div class="app-card auth-card">
+            @RenderBody()
+        </div>
+    </main>
+    <script src="~/js/modules/password-toggle.js" asp-append-version="true"></script>
+    <script src="~/js/modules/theme.js" asp-append-version="true"></script>
+</body>
+</html>

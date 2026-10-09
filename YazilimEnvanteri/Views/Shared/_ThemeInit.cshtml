@@ -1,0 +1,20 @@
+@* Rendered in <head> of both layouts, before the stylesheets: sets <html data-theme> (and the
+   sidebar's data-sidebar state) from the saved
+   choice (localStorage "theme") or the OS preference, so a dark page never flashes white first.
+   Kept inline on purpose - waiting for an external script would defeat it. Toggling lives in
+   wwwroot/js/modules/theme.js. *@
+<script>
+    (function () {
+        var theme = null;
+        try { theme = localStorage.getItem("theme"); } catch (e) { }
+        if (theme !== "light" && theme !== "dark") {
+            theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", theme);
+
+        // Desktop sidebar collapsed/expanded (sidebar.js) - restored here too so it doesn't jump.
+        try {
+            if (localStorage.getItem("sidebar") === "collapsed") document.documentElement.setAttribute("data-sidebar", "collapsed");
+        } catch (e) { }
+    })();
+</script>

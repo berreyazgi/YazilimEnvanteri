@@ -152,6 +152,8 @@ namespace YazilimEnvanteri.Services.Implementations
                 p."websiteUrl"          AS "WebsiteUrl",
                 p."ProjeDurum"          AS "ProjeDurum",
                 p."ProjeKritiklik"      AS "ProjeKritiklik",
+                p."BirimId"             AS "BirimId",
+                p."YazilimUzmaniId"     AS "YazilimUzmaniId",
                 b."Birim"               AS "Birim",
                 b."UstBirim"            AS "UstBirim",
                 b."AltBirim"            AS "AltBirim",
@@ -186,6 +188,8 @@ namespace YazilimEnvanteri.Services.Implementations
             WebsiteUrl = r.WebsiteUrl,
             ProjeDurum = r.ProjeDurum.ToString(),
             ProjeKritiklik = r.ProjeKritiklik.ToString(),
+            BirimId = r.BirimId,
+            YazilimUzmaniId = r.YazilimUzmaniId,
 
             Birim = r.Birim,
             UstBirim = r.UstBirim,
@@ -219,6 +223,8 @@ namespace YazilimEnvanteri.Services.Implementations
             public string? WebsiteUrl { get; set; }
             public ProjeDurum ProjeDurum { get; set; }
             public ProjeKritiklik ProjeKritiklik { get; set; }
+            public int BirimId { get; set; }
+            public int YazilimUzmaniId { get; set; }
 
             public string? Birim { get; set; }
             public string? UstBirim { get; set; }

@@ -5,6 +5,8 @@
     ViewData["Page"] = "projects";
     ViewData["NavKey"] = "projects";
     ViewData["ShowSearch"] = true;
+    // UX only - ProjeController enforces CanManageProjects on Create/Edit itself.
+    bool canManage = (await AuthorizationService.AuthorizeAsync(User, AuthorizationPolicies.CanManageProjects)).Succeeded;
 }
 
 <section>
@@ -14,12 +16,16 @@
             <p class="section-header-subtitle">Tüm yazılım projeleri, sorumlu birimler, teknolojiler ve altyapı bilgilerine merkezi erişim.</p>
         </div>
         <div class="section-header-actions">
+            <partial name="_ThemeToggle" />
             <a class="app-button app-button--outline" href="/Home/NasilKullanilir">
                 <span data-icon="help" data-icon-size="16"></span> 
             </a>
-            <button type="button" class="app-button" data-open-create-proje>
-                <span data-icon="projects" data-icon-size="16"></span> Yeni Proje
-            </button>
+            @if (canManage)
+            {
+                <button type="button" class="app-button" data-open-create-proje>
+                    <span data-icon="projects" data-icon-size="16"></span> Yeni Proje
+                </button>
+            }
             <button type="button" class="app-button app-button--outline" data-export-excel title="Excel olarak dışa aktar">
                 <span data-icon="externalLink" data-icon-size="16"></span> Excel
             </button>
@@ -104,7 +110,10 @@
     </div>
 </section>
 
-<partial name="_ProjeFormModal" />
+@if (canManage)
+{
+    <partial name="_ProjeFormModal" />
+}
 
 @section Styles {
     <link rel="stylesheet" href="~/lib/choices.js/choices.min.css" />

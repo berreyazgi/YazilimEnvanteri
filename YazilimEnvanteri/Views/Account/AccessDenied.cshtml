@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Erişim Engellendi";
+    ViewData["ShowSearch"] = false;
+}
+
+<div class="section-header">
+    <div>
+        <h2 class="section-header-title">Erişim Engellendi</h2>
+    </div>
+    <div class="section-header-actions">
+        <partial name="_ThemeToggle" />
+    </div>
+</div>
+
+<div class="app-card empty-state" style="padding: 64px 24px;">
+    <span data-icon="alertTriangle" data-icon-size="40"></span>
+    <p class="empty-state-title">Bu işlem için yetkiniz yok.</p>
+    <p class="empty-state-text">Hesabınızın rolü bu sayfaya veya işleme erişime izin vermiyor. Yetki gerekiyorsa bir SuperAdmin ile iletişime geçin.</p>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a class="app-button" href="/">Ana Sayfaya Dön</a>
+    }
+    else
+    {
+        <a class="app-button" asp-action="Login">Giriş Yap</a>
+    }
+</div>

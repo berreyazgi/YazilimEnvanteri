@@ -8,7 +8,9 @@
       { key: "infrastructure", label: "Altyapı", icon: "server", href: "#", enabled: false },
       { key: "reports", label: "Raporlar", icon: "chart", href: "#", enabled: false },
       { key: "personnel", label: "Personel", icon: "users", href: "#", enabled: false },
-      { key: "settings", label: "Ayarlar", icon: "settings", href: "#", enabled: false }
+      { key: "settings", label: "Ayarlar", icon: "settings", href: "#", enabled: false },
+      // `requires`: only rendered when AppConfig.permissions[requires] is true (SuperAdmin).
+      { key: "users", label: "Kullanıcı Yönetimi", icon: "users", href: "/RoleManagement", enabled: true, requires: "canManageUsers" }
     ],
 
     // "Mobile mode" is decided by input capability, not by viewport width alone, so a narrow
@@ -21,10 +23,18 @@
       phone: "(hover: none) and (pointer: coarse) and (max-width: 767px)"
     },
 
+    // Both overwritten by _Layout.cshtml from the signed-in user. The permission flags only decide
+    // which buttons/links are rendered - the server enforces them independently.
     currentUser: {
-      adSoyad: "Kullanıcı",
-      rol: "Görüntüleyici",
-      basHarfler: "KU"
+      adSoyad: "",
+      rol: "",
+      basHarfler: ""
+    },
+
+    permissions: {
+      canManageProjects: false,
+      canDeleteProjects: false,
+      canManageUsers: false
     },
 
     labels: {
@@ -130,6 +140,9 @@
       sortNeutral: '<path d="M8 9l4-4 4 4" /><path d="M16 15l-4 4-4-4" />',
       trash: '<path d="M4 7h16" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M6 7l1 13h10l1-13" /><path d="M9 7V4h6v3" />',
       edit: '<path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />',
+      chevronsLeft: '<path d="M11 17l-5-5 5-5" /><path d="M18 17l-5-5 5-5" />',
+      key: '<circle cx="7.5" cy="15.5" r="3.5" /><path d="M10 13l10-10" /><path d="M16 7l3 3" /><path d="M14 9l2 2" />',
+      logOut: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" />',
       help: '<circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6" /><path d="M12 17h.01" />'
     }
   };
@@ -138,6 +151,12 @@
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
     });
+  };
+
+  // Every POST is antiforgery-validated server-side; _Layout puts the request token in a <meta>.
+  window.AppConfig.antiforgeryHeaders = function () {
+    var meta = document.querySelector('meta[name="request-verification-token"]');
+    return { RequestVerificationToken: meta ? meta.content : "" };
   };
 
   window.AppConfig.icon = function (key, size) {

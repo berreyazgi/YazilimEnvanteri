@@ -43,6 +43,30 @@
       });
     });
 
+    // Desktop collapse/expand (icon rail). Pure presentation: <html data-sidebar="collapsed">,
+    // remembered in localStorage and restored before first paint by Views/Shared/_ThemeInit.cshtml.
+    var collapseBtn = document.querySelector("[data-sidebar-collapse]");
+    if (collapseBtn) {
+      var syncCollapseButton = function () {
+        var collapsed = document.documentElement.getAttribute("data-sidebar") === "collapsed";
+        var label = collapsed ? "Menüyü genişlet" : "Menüyü daralt";
+        collapseBtn.setAttribute("aria-expanded", String(!collapsed));
+        collapseBtn.setAttribute("aria-label", label);
+        collapseBtn.setAttribute("title", label);
+      };
+      syncCollapseButton();
+      collapseBtn.addEventListener("click", function () {
+        var collapse = document.documentElement.getAttribute("data-sidebar") !== "collapsed";
+        if (collapse) {
+          document.documentElement.setAttribute("data-sidebar", "collapsed");
+        } else {
+          document.documentElement.removeAttribute("data-sidebar");
+        }
+        try { window.localStorage.setItem("sidebar", collapse ? "collapsed" : "expanded"); } catch (e) { /* session-only */ }
+        syncCollapseButton();
+      });
+    }
+
     // Leaving drawer mode (e.g. rotating a tablet to a wide landscape) while the drawer is open
     // would otherwise leave the body scroll lock stuck. Drawer mode is capability-based (see
     // AppConfig.media.touchCompact), so resizing a desktop window never enters or leaves it.

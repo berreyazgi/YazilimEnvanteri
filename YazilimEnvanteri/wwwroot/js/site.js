@@ -11,11 +11,14 @@
 
     // Unfinished sections stay in AppConfig.navigation (enabled: false) but aren't shown, so the
     // menu never offers dead links.
-    nav.innerHTML = cfg.navigation.filter(function (item) { return item.enabled; }).map(function (item) {
+    nav.innerHTML = cfg.navigation.filter(function (item) {
+      return item.enabled && (!item.requires || cfg.permissions[item.requires]);
+    }).map(function (item) {
       var isActive = item.key === activeKey;
       var classes = "sidebar-link" + (isActive ? " active" : "");
       return (
-        '<a class="' + classes + '" href="' + item.href + '"' + (isActive ? ' aria-current="page"' : "") + ">" +
+        // title: the label is the only name left when the desktop sidebar is collapsed to icons.
+        '<a class="' + classes + '" href="' + item.href + '" title="' + item.label + '"' + (isActive ? ' aria-current="page"' : "") + ">" +
         cfg.icon(item.icon, 18) +
         '<span class="sidebar-link-label">' + item.label + "</span></a>"
       );
@@ -80,6 +83,7 @@
 
     if (page === "projects") {
       window.ProjectsApp.init(window.__INITIAL_PROJECTS__ || [], window.__DATA_ERROR__ === true);
+      window.ProjectInlineEdit.init();
       window.ProjectForm.init();
     }
 

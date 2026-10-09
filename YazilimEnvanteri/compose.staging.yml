@@ -30,6 +30,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Staging
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-postgres};Username=${POSTGRES_USER:-admin};Password=${POSTGRES_PASSWORD}"
+      # First SuperAdmin, created once on startup if this e-mail has no account yet.
+      SeedAdmin__Email: ${SEED_ADMIN_EMAIL:-}
+      SeedAdmin__Password: ${SEED_ADMIN_PASSWORD:-}
     ports:
       - "127.0.0.1:5000:8080"
 

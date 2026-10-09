@@ -5,6 +5,9 @@
     ViewData["NavKey"] = "projects";
     ViewData["ShowSearch"] = false;
     bool dataError = (bool?)ViewBag.DataError ?? false;
+    // UX only - ProjeController enforces the same policies on Edit/Delete.
+    bool canManage = (await AuthorizationService.AuthorizeAsync(User, AuthorizationPolicies.CanManageProjects)).Succeeded;
+    bool canDelete = (await AuthorizationService.AuthorizeAsync(User, AuthorizationPolicies.CanDeleteProjects)).Succeeded;
 }
 
 <a class="detail-back" href="/Proje">
@@ -62,15 +65,21 @@ else
         @* The list's row actions minus "Detayı Görüntüle" (we're already here). On mobile "Web Sitesini
            Aç" moves into the "..." menu so Düzenle + ... always fit next to each other. *@
         <div class="detail-header-actions">
+            <partial name="_ThemeToggle" />
             @if (!string.IsNullOrWhiteSpace(Model.WebsiteUrl))
             {
                 <a class="app-button app-button--outline detail-website-button" href="@Model.WebsiteUrl" target="_blank" rel="noopener">
                     <span data-icon="externalLink" data-icon-size="16"></span> Web Sitesini Aç
                 </a>
             }
-            <button type="button" class="app-button" data-edit-proje="@Model.Id">
-                <span data-icon="edit" data-icon-size="16"></span> Düzenle
-            </button>
+            @if (canManage)
+            {
+                <button type="button" class="app-button" data-edit-proje="@Model.Id">
+                    <span data-icon="edit" data-icon-size="16"></span> Düzenle
+                </button>
+            }
+            @if (canManage || !string.IsNullOrWhiteSpace(Model.WebsiteUrl))
+            {
             <div class="row-actions">
                 <button type="button" class="row-menu-trigger" data-row-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Diğer işlemler">
                     <span data-icon="moreHorizontal" data-icon-size="16"></span>
@@ -82,14 +91,21 @@ else
                             <span data-icon="externalLink" data-icon-size="15"></span> Web Sitesini Aç
                         </a>
                     }
-                    <button type="button" data-edit-proje="@Model.Id">
-                        <span data-icon="edit" data-icon-size="15"></span> Projeyi Düzenle
-                    </button>
-                    <button type="button" class="row-menu-danger" data-delete-proje="@Model.Id">
-                        <span data-icon="trash" data-icon-size="15"></span> Projeyi Sil
-                    </button>
+                    @if (canManage)
+                    {
+                        <button type="button" data-edit-proje="@Model.Id">
+                            <span data-icon="edit" data-icon-size="15"></span> Projeyi Düzenle
+                        </button>
+                    }
+                    @if (canDelete)
+                    {
+                        <button type="button" class="row-menu-danger" data-delete-proje="@Model.Id">
+                            <span data-icon="trash" data-icon-size="15"></span> Projeyi Sil
+                        </button>
+                    }
                 </div>
             </div>
+            }
         </div>
     </div>
 
@@ -288,7 +304,7 @@ else
     }
 }
 
-@if (!dataError && Model != null)
+@if (!dataError && Model != null && canManage)
 {
     <partial name="_ProjeFormModal" />
 }

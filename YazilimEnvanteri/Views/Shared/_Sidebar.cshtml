@@ -1,4 +1,31 @@
 <div class="sidebar-overlay" data-sidebar-overlay></div>
 <aside class="sidebar" data-sidebar>
+    @* Desktop only: collapses the sidebar to an icon rail (sidebar.js; state restored before first
+       paint by _ThemeInit). Hidden on touch devices, where the sidebar is the off-canvas drawer. *@
+    <button type="button" class="sidebar-collapse-toggle" data-sidebar-collapse aria-expanded="true" aria-label="Menüyü daralt" title="Menüyü daralt">
+        <span data-icon="chevronsLeft" data-icon-size="18"></span>
+    </button>
+
     <nav class="sidebar-nav" data-sidebar-nav aria-label="Ana gezinme"></nav>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="sidebar-account">
+            <div class="sidebar-account-user">
+                <span class="avatar avatar-sm" data-user-initials></span>
+                <span class="sidebar-account-text">
+                    <span class="sidebar-account-name" data-user-name></span>
+                    <span class="sidebar-account-role" data-user-role></span>
+                </span>
+            </div>
+            <a class="sidebar-link" asp-controller="Account" asp-action="ChangePassword" title="Şifre Değiştir">
+                <span data-icon="key" data-icon-size="18"></span><span class="sidebar-link-label">Şifre Değiştir</span>
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="sidebar-link sidebar-logout" title="Çıkış Yap">
+                    <span data-icon="logOut" data-icon-size="18"></span><span class="sidebar-link-label">Çıkış Yap</span>
+                </button>
+            </form>
+        </div>
+    }
 </aside>

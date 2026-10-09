@@ -1,0 +1,111 @@
+@model List<YazilimEnvanteri.Models.ViewModels.UserRoleViewModel>
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+    ViewData["NavKey"] = "users";
+    ViewData["ShowSearch"] = false;
+    var success = TempData["Success"] as string;
+    var error = TempData["Error"] as string;
+    var tempPassword = ViewData["TempPassword"] as string;
+}
+
+<section>
+    <div class="section-header">
+        <div>
+            <h2 class="section-header-title">Kullanıcı Yönetimi</h2>
+            <p class="section-header-subtitle">Kullanıcıların rollerini görüntüleyin ve değiştirin. Bir kullanıcının birden fazla rolü olabilir; sistemde her zaman en az bir SuperAdmin kalmalıdır.</p>
+        </div>
+        <div class="section-header-actions">
+            <partial name="_ThemeToggle" />
+        </div>
+    </div>
+
+    @if (error is not null)
+    {
+        <div class="form-alert form-alert--danger" role="alert">@error</div>
+    }
+
+    @if (tempPassword is not null)
+    {
+        <div class="form-alert form-alert--success" role="status">
+            <strong>@ViewData["TempPasswordEmail"]</strong> için geçici şifre:
+            <code class="temp-password" data-temp-password>@tempPassword</code><br />
+            Bu şifre yalnızca şimdi gösterilir ve hiçbir yerde saklanmaz. Kullanıcıya iletin; giriş yaptıktan sonra "Şifre Değiştir" ile değiştirmesini isteyin.
+        </div>
+    }
+
+    <div class="app-card">
+        <div class="table-scroll">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Kullanıcı</th>
+                        <th>E-posta</th>
+                        <th>Mevcut Roller</th>
+                        <th>Rol Seçimi</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        var formId = "role-form-" + user.Id;
+                        <tr>
+                            <td>
+                                @(string.IsNullOrWhiteSpace(user.AdSoyad) ? "—" : user.AdSoyad)
+                                @if (!user.HasPassword)
+                                {
+                                    <span class="status-badge status-badge--warning" title="Personel kaydından oluşturuldu; geçici şifre üretilene kadar giriş yapamaz.">Şifre yok</span>
+                                }
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                <div class="role-badges">
+                                    @if (user.Roles.Count == 0)
+                                    {
+                                        <span class="status-badge status-badge--neutral">Rol yok</span>
+                                    }
+                                    @foreach (var role in user.Roles)
+                                    {
+                                        <span class="status-badge status-badge--@(role == AppRoles.SuperAdmin ? "danger" : role == AppRoles.Admin ? "orange" : role == AppRoles.Developer ? "info" : "neutral")">@role</span>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <div class="role-options">
+                                    @foreach (var role in AppRoles.All)
+                                    {
+                                        <label class="role-option">
+                                            <input type="checkbox" name="roles" value="@role" form="@formId" checked="@user.Roles.Contains(role)" /> @role
+                                        </label>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <form id="@formId" asp-action="ChangeRole" method="post">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit" class="app-button app-button--sm">Güncelle</button>
+                                </form>
+                                <form asp-action="ResetPassword" method="post" class="user-action-form"
+                                      onsubmit="return @(user.HasPassword ? "confirm('Mevcut şifre geçersiz olacak ve kullanıcının oturumu kapanacak. Devam edilsin mi?')" : "true");">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit" class="app-button app-button--outline app-button--sm">@(user.HasPassword ? "Şifre sıfırla" : "Geçici şifre oluştur")</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @if (success is not null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                window.Toast.show(@Json.Serialize(success), "success");
+            });
+        </script>
+    }
+}

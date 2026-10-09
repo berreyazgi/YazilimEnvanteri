@@ -1,10 +1,14 @@
 using System.Reflection;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using YazilimEnvanteri.Models.Entities;
+using YazilimEnvanteri.Models.Identity;
 
 namespace YazilimEnvanteri.Data
 {
-    public class ApplicationDbContext : DbContext
+    // Also the ASP.NET Core Identity store (AspNetUsers/AspNetRoles/...): Identity's UserManager and
+    // RoleManager are the one runtime use of EF here; project data still goes through Dapper.
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {

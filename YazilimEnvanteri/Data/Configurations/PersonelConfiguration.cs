@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using YazilimEnvanteri.Models.Entities;
+using YazilimEnvanteri.Models.Identity;
 
 namespace YazilimEnvanteri.Data.Configurations
 {
@@ -47,6 +48,12 @@ namespace YazilimEnvanteri.Data.Configurations
             builder.Property(p => p.SorumluPersonel)
                 .IsRequired(false)
                 .HasMaxLength(100);
+
+            // 1-1 with the login account; deleting the account just unlinks the staff record.
+            builder.HasOne<ApplicationUser>()
+                .WithOne()
+                .HasForeignKey<PersonelEntity>(p => p.AppUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

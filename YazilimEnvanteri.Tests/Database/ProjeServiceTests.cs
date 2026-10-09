@@ -27,6 +27,8 @@ public class ProjeServiceTests(PostgresFixture db)
         Assert.True(await service.DeleteAsync(id));
 
         Assert.Null(await service.GetByIdAsync(id));
+        Assert.Null(await service.GetProjeDetailAsync(id));
+        Assert.DoesNotContain(await service.GetProjeListAsync(), p => p.Id == id);
         Assert.False(await service.ProjeKoduKullaniliyorMuAsync(kod));
         Assert.False(await service.DeleteAsync(id));
     }

@@ -1,9 +1,30 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    // Permission flags for the JS-rendered parts (sidebar nav, project row menus). They only decide
+    // what is shown; ProjeController/RoleManagementController enforce the same policies server-side.
+    async Task<bool> Can(string policy) => (await AuthorizationService.AuthorizeAsync(User, policy)).Succeeded;
+    var userName = User.Identity?.Name ?? string.Empty;
+    var currentUser = new
+    {
+        adSoyad = userName,
+        rol = string.Join(", ", AppRoles.All.Where(User.IsInRole)),
+        basHarfler = userName.Length >= 2 ? userName[..2].ToUpperInvariant() : userName.ToUpperInvariant()
+    };
+    var permissions = new
+    {
+        canManageProjects = await Can(AuthorizationPolicies.CanManageProjects),
+        canDeleteProjects = await Can(AuthorizationPolicies.CanDeleteProjects),
+        canManageUsers = await Can(AuthorizationPolicies.CanManageUsers)
+    };
+}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="request-verification-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     <title>@ViewData["Title"] - Yazılım Envanteri ve Yönetim Portalı</title>
+    <partial name="_ThemeInit" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -21,12 +42,19 @@
     <div class="toast-container" data-toast-container aria-live="polite"></div>
 
     <script src="~/js/config/app-config.js" asp-append-version="true"></script>
+    <script>
+        window.AppConfig.currentUser = @Json.Serialize(currentUser);
+        window.AppConfig.permissions = @Json.Serialize(permissions);
+    </script>
     <script src="~/js/modules/toast.js" asp-append-version="true"></script>
+    <script src="~/js/modules/password-toggle.js" asp-append-version="true"></script>
+    <script src="~/js/modules/theme.js" asp-append-version="true"></script>
     <script src="~/js/modules/sidebar.js" asp-append-version="true"></script>
     <script src="~/js/modules/dropdown.js" asp-append-version="true"></script>
     <script src="~/js/modules/filters.js" asp-append-version="true"></script>
     <script src="~/js/modules/pagination.js" asp-append-version="true"></script>
     <script src="~/js/modules/projects.js" asp-append-version="true"></script>
+    <script src="~/js/modules/project-inline-edit.js" asp-append-version="true"></script>
     <script src="~/js/modules/project-form.js" asp-append-version="true"></script>
     <script src="~/js/modules/project-detail.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

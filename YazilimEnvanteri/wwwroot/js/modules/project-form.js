@@ -453,9 +453,9 @@
       btn.addEventListener("click", function () { closeModal(overlay); });
     });
 
-    overlay.addEventListener("click", function (e) {
-      if (e.target === overlay) closeModal(overlay);
-    });
+    // Deliberately no backdrop-click close: a stray click (or a text selection dragged past the
+    // modal's edge) must not throw away a half-filled Create/Edit form. Only the X / Vazgeç buttons,
+    // Escape and a successful save close it.
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -494,7 +494,7 @@
 
       fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: Object.assign({ "Content-Type": "application/json" }, cfg.antiforgeryHeaders()),
         body: JSON.stringify(payload)
       }).then(function (res) {
         if (res.status === expectedStatus) {
@@ -519,7 +519,7 @@
   // (ProjeService.DeleteAsync). From the detail page there's nothing left to show, so go to the list.
   function deleteProje(id) {
     if (!window.confirm("Bu proje silinecek. Emin misiniz?")) return;
-    fetch("/Proje/Delete/" + id, { method: "POST" }).then(function (res) {
+    fetch("/Proje/Delete/" + id, { method: "POST", headers: cfg.antiforgeryHeaders() }).then(function (res) {
       if (!res.ok) throw new Error();
       if (window.location.pathname.toLowerCase().indexOf("/proje/details") === 0) {
         window.location.href = "/Proje?deleted=1";

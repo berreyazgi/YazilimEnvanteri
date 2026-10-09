@@ -158,7 +158,8 @@
   }
 
   // Shared between desktop table rows and mobile cards so there is exactly one place that
-  // knows what actions a project row exposes (Detaylar / Web Sitesini Aç / Projeyi Sil).
+  // knows what actions a project row exposes (Detaylar / Web Sitesini Aç / Projeyi Sil). Edit and
+  // delete only appear for roles allowed to use them (AppConfig.permissions).
   function projectActionsMarkup(project) {
     var websiteAction = project.websiteUrl
       ? '<a href="' + escapeHtml(project.websiteUrl) + '" target="_blank" rel="noopener">' + cfg.icon("externalLink", 15) + " Web Sitesini Aç</a>"
@@ -170,9 +171,9 @@
       '<button type="button" class="row-menu-trigger" data-row-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Diğer işlemler">' + cfg.icon("moreHorizontal", 16) + "</button>" +
       '<div class="row-menu-panel">' +
       '<a href="/Proje/Details/' + project.id + '">' + cfg.icon("externalLink", 15) + " Detayı Görüntüle</a>" +
-      '<button type="button" data-edit-proje="' + project.id + '">' + cfg.icon("edit", 15) + " Projeyi Düzenle</button>" +
+      (cfg.permissions.canManageProjects ? '<button type="button" data-edit-proje="' + project.id + '">' + cfg.icon("edit", 15) + " Projeyi Düzenle</button>" : "") +
       websiteAction +
-      '<button type="button" class="row-menu-danger" data-delete-proje="' + project.id + '">' + cfg.icon("trash", 15) + " Projeyi Sil</button>" +
+      (cfg.permissions.canDeleteProjects ? '<button type="button" class="row-menu-danger" data-delete-proje="' + project.id + '">' + cfg.icon("trash", 15) + " Projeyi Sil</button>" : "") +
       "</div></div>"
     );
   }
@@ -270,10 +271,13 @@
 
     body.innerHTML = pageItems.map(function (project) {
       var cells = cfg.projectColumns.map(function (col) {
-        return '<td data-col="' + col.key + '">' + cellMarkup(project, col) + "</td>";
+        // Inline-editable cells (project-inline-edit.js) are focusable so Enter/F2 can open them.
+        var editable = window.ProjectInlineEdit && window.ProjectInlineEdit.isEditable(col.key);
+        var editAttrs = editable ? ' class="cell-editable" tabindex="0" data-label="' + escapeHtml(col.label) + '"' : "";
+        return '<td data-col="' + col.key + '"' + editAttrs + ">" + cellMarkup(project, col) + "</td>";
       }).join("");
 
-      return "<tr>" + cells + "<td data-col=\"actions\">" + projectActionsMarkup(project) + "</td></tr>";
+      return '<tr data-project-id="' + project.id + '">' + cells + "<td data-col=\"actions\">" + projectActionsMarkup(project) + "</td></tr>";
     }).join("");
 
     bindRowActionEvents(body);
@@ -565,6 +569,8 @@
     init: init,
     renderAll: renderAll,
     applyFilters: applyFilters,
+    // Re-derives the filter dropdown options from the (possibly edited) projects, keeping selections.
+    refreshFilterOptions: populateFilterSelects,
     multiFilterKeys: Object.keys(MULTI_FILTER_FIELDS)
   };
 })(window);
